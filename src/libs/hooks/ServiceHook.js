@@ -1,4 +1,3 @@
-/* eslint-disable react-hooks/exhaustive-deps */
 import {useEffect} from 'react';
 import useProgress from './ProgressHook';
 import type {Services} from '../../services';

@@ -1,3 +1,4 @@
+import {Alert} from 'react-native';
 import axios from 'axios';
 import ErrorInformation from '../core/common/ErrorInformation';
 import ErrorCode from '../core/enums/ErrorCode';
@@ -12,6 +13,18 @@ export type Services = {
 	gate: GateService,
 };
 
+export type ServiceErrorHandlerOptions = {
+	intercept: (error?: Error) => string,
+	showAlert: boolean,
+	showLog: boolean,
+};
+
+export type ServiceErrorsHandlerOptions = {
+	intercept: (errors?: ErrorInformation[]) => string | string[],
+	showAlert: boolean,
+	showLog: boolean,
+};
+
 function createServices(setProgress?: SetProgressInfo): Services {
 	const cancelTokenSource = axios.CancelToken.source();
 
@@ -22,37 +35,60 @@ function createServices(setProgress?: SetProgressInfo): Services {
 		cancelTokenSource.cancel(message);
 	}
 
-	function handleError(error?: Error, logger?: ILogger) {
-		if (error && error.message) {
-			if (error.message === 'Failed to fetch') {
-				error.message = 'We are unable to communicate with our back at the moment. Please try again later.';
+	function handleError(
+		error?: Error,
+		logger?: ILogger,
+		options: ServiceErrorHandlerOptions = {showAlert: true, showLog: true},
+	) {
+		function show(message: string) {
+			if (logger && options.showLog) {
+				logger.error('Caught error, message:', message);
 			}
-			if (logger) {
-				logger.error('Caught error, message:', error.message);
+
+			if (options.showAlert) {
+				Alert.alert('An Error Occurred', message);
 			}
 		}
+
+		if (!error || !error.message) {
+			return;
+		}
+
+		let errorMessage = error.message;
+
+		if (options.intercept) {
+			errorMessage = options.intercept(error);
+		}
+
+		if (error.message === 'Failed to fetch') {
+			errorMessage = 'We are unable to communicate with our back at the moment. Please try again later.';
+		}
+
+		show(errorMessage);
 	}
 
-	function handleErrors(errors?: ErrorInformation[], logger?: ILogger) {
-		function printError(message: string) {
-			if (logger) {
-				logger.error('Request returns error, reason:', message);
+	function handleErrors(
+		errors?: ErrorInformation[],
+		logger?: ILogger,
+		options: ServiceErrorsHandlerOptions = {showAlert: true, showLog: false},
+	) {
+		if (!errors || !Array.isArray(errors)) {
+			return;
+		}
+
+		if (errors.findIndex(error => error.code === ErrorCode.NotAuthenticated) !== -1) {
+			// TODO: Go To Sign In Page
+		}
+
+		if (logger && options.showLog) {
+			for (const error of errors.reverse()) {
+				logger.error('Request returns error, reason:', error.reason);
 			}
 		}
 
-		if (errors && Array.isArray(errors)) {
-			if (errors.findIndex(error => error.code === ErrorCode.NotAuthenticated) !== -1) {
-				// TODO: Go To Sign In Page
-			}
-			for (const error of errors.reverse()) {
-				switch (error.code) {
-					case ErrorCode.InvalidAntiforgeryToken:
-						printError('Your session has ended. Please refresh this page.');
-						break;
-					default:
-						printError(error.reason);
-				}
-			}
+		if (options.showAlert) {
+			const firstError = errors[0];
+			Alert.alert('Error Occurred', firstError.reason);
 		}
 	}
 

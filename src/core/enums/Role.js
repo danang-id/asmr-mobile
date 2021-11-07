@@ -1,5 +1,5 @@
 export default {
 	Administrator: 0,
 	Server: 1,
-	Roaster: 2
+	Roaster: 2,
 };

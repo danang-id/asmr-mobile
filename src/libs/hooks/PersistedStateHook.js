@@ -3,7 +3,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import useLogger from './LoggerHook';
 import useInit from './InitHook';
 
-function usePersistedState<T = unknown>(name: string, initialValue?: T): [T | undefined, (value?: T) => void] {
+function usePersistedState<T>(name: string, initialValue?: T): [T | undefined, (value?: T) => void] {
 	useInit(onInit);
 	const persistenceKey = 'ASMR_PERSISTENCE_' + name;
 	const logger = useLogger(usePersistedState);
@@ -11,7 +11,7 @@ function usePersistedState<T = unknown>(name: string, initialValue?: T): [T | un
 
 	async function onInit() {
 		const persistedStateString = await AsyncStorage.getItem(persistenceKey);
-		if (typeof persistedState !== 'undefined' && persistedStateString !== null) {
+		if (typeof persistedStateString !== 'undefined' && persistedStateString !== null) {
 			setLocalState(JSON.parse(persistedStateString));
 		} else if (typeof initialValue !== 'undefined' && initialValue !== null) {
 			await setPersistedState(initialValue);

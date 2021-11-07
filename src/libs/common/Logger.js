@@ -14,7 +14,10 @@ class Logger implements ILogger {
 	}
 
 	write(write: WriterFunction, ...args: string[]) {
-		write(`[${this.name}]`, ...args);
+		const now = new Date();
+		const title = `\x1b[36m\x1b[1m${this.name}\x1b[0m\n      `;
+		const time = now.toISOString();
+		write(title, time, ...args);
 	}
 
 	error(...args: any[]) {

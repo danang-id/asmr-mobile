@@ -10,5 +10,5 @@ import Application from '../src/Application';
 import renderer from 'react-test-renderer';
 
 it('renders correctly', () => {
-  renderer.create(<Application />);
+	renderer.create(<Application />);
 });

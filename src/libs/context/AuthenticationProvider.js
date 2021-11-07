@@ -1,5 +1,4 @@
 import React, {FC, useEffect} from 'react';
-import ErrorCode from '../../core/enums/ErrorCode';
 import User from '../../core/entities/User';
 import parseEntity from '../common/EntityParser';
 import useInit from '../hooks/InitHook';
@@ -7,14 +6,13 @@ import usePersistedState from '../hooks/PersistedStateHook';
 import useServices from '../hooks/ServiceHook';
 import AuthenticationContext from './AuthenticationContext';
 import useLogger from '../hooks/LoggerHook';
+import ErrorCode from '../../core/enums/ErrorCode';
 
-interface AuthenticationProviderProps {}
-
-const AuthenticationProvider: FC<AuthenticationProviderProps> = ({children}) => {
+const AuthenticationProvider: FC = ({children}) => {
 	useInit(onInit);
 	const logger = useLogger(AuthenticationProvider);
-	const [user, setUser] = usePersistedState('AUTHENTICATED_USER');
 	const services = useServices();
+	const [user, setUser] = usePersistedState('AUTHENTICATED_USER');
 
 	function parseUserData(data: User): User {
 		const clone = parseEntity(data);
@@ -77,15 +75,9 @@ const AuthenticationProvider: FC<AuthenticationProviderProps> = ({children}) => 
 			}
 
 			if (response.errors && Array.isArray(response.errors)) {
-				const hasNotAuthenticatedError =
-					response.errors.findIndex(error => error.code === ErrorCode.NotAuthenticated) !== -1;
-				if (!hasNotAuthenticatedError) {
+				const unauthenticatedError = response.errors.find(error => error.code === ErrorCode.NotAuthenticated);
+				if (!unauthenticatedError) {
 					services.handleErrors(response.errors, logger);
-					return;
-				}
-
-				if (isAuthenticated()) {
-					// TODO: Redirect Authenticated
 				}
 			}
 		} catch (error) {
@@ -94,7 +86,8 @@ const AuthenticationProvider: FC<AuthenticationProviderProps> = ({children}) => 
 	}
 
 	useEffect(() => {
-		logger.info('Auth Changed', user);
+		const info = user ? `${user.username} (${user.emailAddress})` : 'null';
+		logger.info('Auth Changed:', info);
 	}, [user]);
 
 	return (

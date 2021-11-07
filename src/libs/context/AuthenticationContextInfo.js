@@ -1,4 +1,7 @@
 import ErrorInformation from '../../core/common/ErrorInformation';
+import Role from '../../core/enums/Role';
+import User from '../../core/entities/User';
+import AuthenticationResponseModel from '../../core/response/AuthenticationResponseModel';
 import type {ILogger} from '../common/Logger';
 
 export type AuthenticationContextInfo = {

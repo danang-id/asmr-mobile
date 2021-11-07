@@ -1,6 +1,6 @@
 import {Platform} from 'react-native';
 import axios, {AxiosInstance, AxiosRequestConfig, AxiosResponse, CancelTokenSource} from 'axios';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import EncryptedStorage from 'react-native-encrypted-storage';
 import type {SetProgressInfo} from '../libs/context/ProgressContextInfo';
 import {version} from '../../package.json';
 import type {ILogger} from '../libs/common/Logger';
@@ -59,7 +59,7 @@ export default class ServiceBase {
 	}
 
 	logRequest(request: AxiosRequestConfig, response: AxiosResponse) {
-		this.logger.info(`[${request.method.toUpperCase()}] ${request.url}`);
+		this.logger.info(`[${response.status}] ${request.method.toUpperCase()} ${request.url}`);
 		if (this.options.log.requestHeader === true) {
 			this.logger.info(request.headers);
 		}
@@ -81,12 +81,12 @@ export default class ServiceBase {
 	async onRequestFulfilled(request: AxiosRequestConfig) {
 		this.setProgress(true, 0);
 
-		const cookieHeader = await AsyncStorage.getItem(this.SERVICE_COOKIES_STORAGE_KEY, '');
+		const cookieHeader = await EncryptedStorage.getItem(this.SERVICE_COOKIES_STORAGE_KEY);
 		if (cookieHeader) {
 			request.headers.Cookie = cookieHeader;
 		}
 
-		const csrfRequestToken = await AsyncStorage.getItem(this.SERVICE_CSRF_REQUEST_TOKEN_STORAGE_KEY, '');
+		const csrfRequestToken = await EncryptedStorage.getItem(this.SERVICE_CSRF_REQUEST_TOKEN_STORAGE_KEY);
 		if (csrfRequestToken) {
 			request.headers[this.CSRF_TOKEN_HEADER_NAME] = csrfRequestToken;
 		}
@@ -111,7 +111,7 @@ export default class ServiceBase {
 			} else if (typeof setCookieHeaders === 'string') {
 				setCookieHeaderString = setCookieHeaders;
 			}
-			await AsyncStorage.setItem(this.SERVICE_COOKIES_STORAGE_KEY, setCookieHeaderString);
+			await EncryptedStorage.setItem(this.SERVICE_COOKIES_STORAGE_KEY, setCookieHeaderString);
 
 			const cookies = setCookieHeaderString.split(',');
 			for (const cookie of cookies) {
@@ -119,7 +119,7 @@ export default class ServiceBase {
 				const cookieName = cookieBase[0];
 				if (cookieName === this.CSRF_REQUEST_TOKEN_COOKIE_NAME) {
 					const cookieValue = cookieBase[1];
-					await AsyncStorage.setItem(this.SERVICE_CSRF_REQUEST_TOKEN_STORAGE_KEY, cookieValue);
+					await EncryptedStorage.setItem(this.SERVICE_CSRF_REQUEST_TOKEN_STORAGE_KEY, cookieValue);
 				}
 			}
 		}
