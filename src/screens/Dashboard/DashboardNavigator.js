@@ -11,9 +11,8 @@ import ProfileScreen from './ProfileScreen';
 
 const Tab = createBottomTabNavigator();
 
-type DashboardNavigatorProps = BottomTabScreenProps<{}>;
-const DashboardNavigator: FC<DashboardNavigatorProps> = () => {
-	function getScreenOptions({route}: DashboardNavigatorProps): BottomTabNavigationOptions {
+const DashboardNavigator: FC = () => {
+	function getScreenOptions({route}: BottomTabScreenProps): BottomTabNavigationOptions {
 		return {
 			headerShown: false,
 			tabBarIcon: ({focused, color, size}) => {

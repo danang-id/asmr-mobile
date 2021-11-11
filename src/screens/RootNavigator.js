@@ -1,22 +1,17 @@
-import React, {FC, useState} from 'react';
+import React, {FC} from 'react';
+import SplashScreen from 'react-native-splash-screen';
 import useAuthentication from '../libs/hooks/AuthenticationHook';
 import useInit from '../libs/hooks/InitHook';
 import AuthenticationNavigator from './Authentication/AuthenticationNavigator';
 import DashboardNavigator from './Dashboard/DashboardNavigator';
-import SplashScreen from './Misc/SplashScreen';
 
 const RootNavigator: FC = () => {
 	useInit(onInit);
 	const authentication = useAuthentication();
-	const [initialized, setInitialized] = useState(false);
 
 	async function onInit() {
 		await authentication.updateUserData();
-		setInitialized(true);
-	}
-
-	if (!initialized) {
-		return <SplashScreen />;
+		SplashScreen.hide();
 	}
 
 	if (!authentication.isAuthenticated()) {

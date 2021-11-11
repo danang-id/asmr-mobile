@@ -95,7 +95,6 @@ export default class ServiceBase {
 	}
 
 	onRequestRejected(error: Error) {
-		this.setProgress(false, 0);
 		this.logError(error);
 		return Promise.reject(error);
 	}
@@ -123,14 +122,22 @@ export default class ServiceBase {
 				}
 			}
 		}
-		this.setProgress(true, 1);
+
 		this.logRequest(response.config, response);
+		this.setProgress(true, 1);
 		return response;
 	}
 
 	onResponseRejected(error: Error) {
-		this.setProgress(false, 0);
 		this.logError(error);
 		return Promise.reject(error);
+	}
+
+	processData<T>(response: AxiosResponse<T>): T {
+		return response.data;
+	}
+
+	finalize() {
+		this.setProgress(false, 0);
 	}
 }
