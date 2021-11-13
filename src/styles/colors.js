@@ -1,4 +1,4 @@
-export default {
+const applicationColors = {
 	action: '#1D71F9',
 	actionAccent: '#2F7DFA',
 	danger: '#F32013',
@@ -13,3 +13,5 @@ export default {
 	light: '#EAE7E7',
 	lighter: '#F5F2F2',
 };
+
+export default applicationColors;

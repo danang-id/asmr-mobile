@@ -5,6 +5,7 @@ import type {SetProgressInfo} from '../libs/context/ProgressContextInfo';
 import {version} from '../../package.json';
 import type {ILogger} from '../libs/common/Logger';
 import Logger from '../libs/common/Logger';
+import {AxiosError} from 'axios';
 
 export interface ServiceLogOptions {
 	requestHeader?: boolean;
@@ -50,7 +51,7 @@ export default class ServiceBase {
 				clientPlatform: Platform.OS === 'android' ? 'Android' : Platform.OS === 'ios' ? 'iOS' : Platform.OS,
 				clientVersion: version,
 			},
-			validateStatus: status => status >= 200 && status <= 500,
+			validateStatus: status => status >= 200 && status <= 504,
 		});
 
 		this.client.interceptors.request.use(this.onRequestFulfilled.bind(this), this.onRequestRejected.bind(this));
@@ -74,7 +75,7 @@ export default class ServiceBase {
 		}
 	}
 
-	logError(error: Error) {
+	logError(error: AxiosError) {
 		this.logger.error(error);
 	}
 
@@ -94,7 +95,7 @@ export default class ServiceBase {
 		return request;
 	}
 
-	onRequestRejected(error: Error) {
+	onRequestRejected(error: AxiosError) {
 		this.logError(error);
 		return Promise.reject(error);
 	}
@@ -128,7 +129,7 @@ export default class ServiceBase {
 		return response;
 	}
 
-	onResponseRejected(error: Error) {
+	onResponseRejected(error: AxiosError) {
 		this.logError(error);
 		return Promise.reject(error);
 	}

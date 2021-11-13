@@ -1,40 +1,38 @@
 import {StyleSheet} from 'react-native';
+import applicationColors from '../../../styles/colors';
 
 export default StyleSheet.create({
 	container: {
+		minHeight: '100%',
+	},
+	spinnerOverlayText: {
+		color: applicationColors.light,
+	},
+	keyboardAvoidingView: {
+		flexDirection: 'column',
+		alignItems: 'center',
+		marginHorizontal: 10,
+	},
+
+	headerLayout: {
 		flexDirection: 'column',
 		alignItems: 'center',
 		justifyContent: 'center',
-		padding: 10,
-		minHeight: '100%',
+		height: '40%',
 	},
-	header: {
-		flexDirection: 'row',
-		alignItems: 'center',
-		justifyContent: 'center',
-		padding: 10,
+	signInCard: {
+		width: '100%',
+		marginVertical: 20,
 	},
-	signInForm: {
-		padding: 10,
-	},
-	actions: {
-		padding: 10,
+	actionLayout: {
+		paddingVertical: 10,
 	},
 
-	applicationLogo: {
-		height: 50,
-		width: 195,
+	appTitleImage: {
+		height: 75,
+		width: 217.5,
 	},
-
-	signInTextInput: {
-		height: 40,
-		margin: 12,
-		borderWidth: 1,
-		padding: 10,
-	},
-
-	signInButton: {
-		borderWidth: 1,
-		padding: 10,
+	input: {
+		marginVertical: 10,
 	},
 });

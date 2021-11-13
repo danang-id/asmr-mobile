@@ -1,3 +1,5 @@
+import {getDeviceName} from 'react-native-device-info';
+
 type WriterFunction = (...args: any[]) => void;
 
 export interface ILogger {
@@ -7,16 +9,19 @@ export interface ILogger {
 }
 
 class Logger implements ILogger {
+	deviceName: string;
 	name: string;
 
 	constructor(name: string) {
+		this.deviceName = 'Unknown';
 		this.name = name;
+		getDeviceName().then(deviceName => (this.deviceName = deviceName));
 	}
 
 	write(write: WriterFunction, ...args: string[]) {
 		const now = new Date();
-		const title = `\x1b[36m\x1b[1m${this.name}\x1b[0m\n      `;
-		const time = now.toISOString();
+		const title = `\x1b[1m\x1b[32m[${this.deviceName}] \x1b[36m${this.name}\x1b[0m\n      `;
+		const time = `\x1b[33m${now.toISOString()}\x1b[0m`;
 		write(title, time, ...args);
 	}
 

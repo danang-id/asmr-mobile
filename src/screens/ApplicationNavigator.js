@@ -5,7 +5,7 @@ import useInit from '../libs/hooks/InitHook';
 import AuthenticationNavigator from './Authentication/AuthenticationNavigator';
 import DashboardNavigator from './Dashboard/DashboardNavigator';
 
-const RootNavigator: FC = () => {
+const ApplicationNavigator: FC = () => {
 	useInit(onInit);
 	const authentication = useAuthentication();
 
@@ -21,4 +21,4 @@ const RootNavigator: FC = () => {
 	return <DashboardNavigator />;
 };
 
-export default RootNavigator;
+export default ApplicationNavigator;
