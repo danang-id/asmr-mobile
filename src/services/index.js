@@ -4,13 +4,19 @@ import ErrorInformation from '../core/common/ErrorInformation';
 import ErrorCode from '../core/enums/ErrorCode';
 import type {ILogger} from '../libs/common/Logger';
 import type {SetProgressInfo} from '../libs/context/ProgressContextInfo';
+import BeanService from './BeanService';
 import GateService from './GateService';
+import IncomingGreenBeanService from './IncomingGreenBeanService';
+import ProductionService from './ProductionService';
 
 export type Services = {
 	abort: () => void,
 	handleError: (error?: Error, logger?: ILogger) => void,
 	handleErrors: (errors?: ErrorInformation[], logger?: ILogger) => void,
+	bean: BeanService,
 	gate: GateService,
+	incomingGreenBean: IncomingGreenBeanService,
+	production: ProductionService,
 };
 
 export type ServiceErrorHandlerOptions = {
@@ -96,7 +102,10 @@ function createServices(setProgress?: SetProgressInfo): Services {
 		abort,
 		handleError,
 		handleErrors,
+		bean: new BeanService(cancelTokenSource, undefined, setProgress),
 		gate: new GateService(cancelTokenSource, undefined, setProgress),
+		incomingGreenBean: new IncomingGreenBeanService(cancelTokenSource, undefined, setProgress),
+		production: new ProductionService(cancelTokenSource, undefined, setProgress),
 	};
 }
 

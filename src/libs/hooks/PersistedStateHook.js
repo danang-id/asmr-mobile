@@ -3,7 +3,9 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import useLogger from './LoggerHook';
 import useInit from './InitHook';
 
-function usePersistedState<T>(name: string, initialValue?: T): [T | undefined, (value?: T) => void] {
+export type PersistedStateResult<T> = [T | undefined, (value?: T) => void];
+
+function usePersistedState<T>(name: string, initialValue?: T): PersistedStateResult<T> {
 	useInit(onInit);
 	const persistenceKey = 'ASMR_PERSISTENCE_' + name;
 	const logger = useLogger(usePersistedState);

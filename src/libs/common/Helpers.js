@@ -1,6 +1,4 @@
-export function processResource(link: string) {
-	return 'https://asmr.hamzahjundi.me' + link;
-}
+import Role from '../../core/enums/Role';
 
 export function getHumanizedDate(date: Date) {
 	if (!date || !(date instanceof Date)) {
@@ -22,4 +20,17 @@ export function getHumanizedDate(date: Date) {
 		'December',
 	];
 	return monthStrings[date.getMonth()] + ' ' + date.getFullYear();
+}
+
+export function getRoleString(role: number): string {
+	switch (role) {
+		case Role.Administrator:
+			return 'Administrator';
+		case Role.Server:
+			return 'Server';
+		case Role.Roaster:
+			return 'Roaster';
+		default:
+			return 'Unknown';
+	}
 }

@@ -9,6 +9,7 @@
 		"log-ios": "react-native log-ios",
 		"start": "react-native start",
 		"test": "jest",
+		"doctor": "react-native doctor",
 		"lint": "eslint ."
 	},
 	"dependencies": {
@@ -23,8 +24,11 @@
 		"react": "17.0.2",
 		"react-native": "0.66.3",
 		"react-native-camera": "4.2.1",
-		"react-native-device-info": "8.4.6",
+		"react-native-device-info": "8.4.7",
+		"react-native-dotenv": "3.3.0",
 		"react-native-encrypted-storage": "4.0.2",
+		"react-native-fast-image": "^8.5.11",
+		"react-native-file-access": "2.0.0",
 		"react-native-loading-spinner-overlay": "2.0.0",
 		"react-native-permissions": "3.1.0",
 		"react-native-qrcode-scanner": "1.5.4",

@@ -1,15 +1,15 @@
 import React, {useEffect, useState} from 'react';
 import {StatusBar, useColorScheme} from 'react-native';
-import {NavigationContainer} from '@react-navigation/native';
 import {getDeviceName} from 'react-native-device-info';
+import {NavigationContainer} from '@react-navigation/native';
 import {ApplicationProvider as UIKittenProvider, IconRegistry} from '@ui-kitten/components';
 import * as eva from '@eva-design/eva';
 import useInit from './libs/hooks/InitHook';
 import useLogger from './libs/hooks/LoggerHook';
-import ApplicationNavigator from './screens/ApplicationNavigator';
+import ScreenNavigator from './screens/ScreenNavigator';
 import {name as appName} from '../app.json';
 import AuthenticationProvider from './libs/context/AuthenticationProvider';
-import applicationTheme from './styles/theme';
+import {applicationLightTheme, applicationDarkTheme} from './styles/theme';
 import {IonIconsPack} from './components/IonIcons';
 import {MaterialIconsPack} from './components/MaterialIcons';
 import {SafeAreaProvider} from 'react-native-safe-area-context/src/SafeAreaContext';
@@ -24,12 +24,10 @@ const Application: () => Node = () => {
 	useInit(onInit);
 	const colorScheme = useColorScheme();
 	const logger = useLogger(Application);
-	const [theme, setTheme] = useState(
-		colorScheme === 'dark' ? {...eva.light, ...applicationTheme} : {...eva.light, ...applicationTheme},
-	);
+	const [theme, setTheme] = useState(colorScheme === 'dark' ? applicationDarkTheme : applicationLightTheme);
 
 	useEffect(() => {
-		setTheme(colorScheme === 'dark' ? {...eva.light, ...applicationTheme} : {...eva.light, ...applicationTheme});
+		setTheme(colorScheme === 'dark' ? applicationDarkTheme : applicationLightTheme);
 		logger.info(`Color scheme changed to "${colorScheme}"`);
 	}, [colorScheme]);
 
@@ -46,7 +44,7 @@ const Application: () => Node = () => {
 					<IconRegistry icons={[IonIconsPack, MaterialIconsPack]} />
 					<UIKittenProvider {...eva} theme={theme}>
 						<StatusBar barStyle={colorScheme === 'dark' ? 'light-content' : 'dark-content'} />
-						<ApplicationNavigator />
+						<ScreenNavigator />
 					</UIKittenProvider>
 				</AuthenticationProvider>
 			</NavigationContainer>

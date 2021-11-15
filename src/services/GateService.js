@@ -3,30 +3,32 @@ import AuthenticationResponseModel from '../core/response/AuthenticationResponse
 import ServiceBase from './ServiceBase';
 
 export default class GateService extends ServiceBase {
+	#servicePath = '/api/gate/';
+
 	async authenticate(body: SignInRequestModel): Promise<AuthenticationResponseModel> {
 		try {
-			const response = await this.client.post('/api/gate/authenticate', body);
-			return this.processData(response);
+			const response = await this.client.post(this.#servicePath + 'authenticate', body);
+			return this._processData(response);
 		} finally {
-			this.finalize();
+			this._finalize();
 		}
 	}
 
 	async clearSession(): Promise<AuthenticationResponseModel> {
 		try {
-			const response = await this.client.post('/api/gate/exit');
-			return this.processData(response);
+			const response = await this.client.post(this.#servicePath + 'exit');
+			return this._processData(response);
 		} finally {
-			this.finalize();
+			this._finalize();
 		}
 	}
 
 	async getUserPassport(): Promise<AuthenticationResponseModel> {
 		try {
-			const response = await this.client.get('/api/gate/passport');
-			return this.processData(response);
+			const response = await this.client.get(this.#servicePath + 'passport');
+			return this._processData(response);
 		} finally {
-			this.finalize();
+			this._finalize();
 		}
 	}
 }

@@ -1,21 +1,51 @@
-import React, {FC, useEffect, useState} from 'react';
-import {Alert, FlatList, GestureResponderEvent, SafeAreaView, ScrollView, View} from 'react-native';
-import {Avatar, Button, Card, Divider, Icon, Layout, List, ListItem, Text} from '@ui-kitten/components';
+import React, {FC, useCallback, useEffect, useState} from 'react';
+import {Alert, GestureResponderEvent, RefreshControl, SafeAreaView, ScrollView, View} from 'react-native';
+import {Button, Card, Text} from '@ui-kitten/components';
+import FastImage from 'react-native-fast-image';
+import {API_BASE_URL} from '@env';
 import ErrorCode from '../../../core/enums/ErrorCode';
-import {getHumanizedDate, processResource} from '../../../libs/common/Helpers';
+import {createCardHeader} from '../../../libs/common/CardHeader';
+import {getHumanizedDate, getRoleString} from '../../../libs/common/Helpers';
 import useAuthentication from '../../../libs/hooks/AuthenticationHook';
+import useInit from '../../../libs/hooks/InitHook';
 import useLogger from '../../../libs/hooks/LoggerHook';
-import ProfileScreenStyle from './ProfileScreenStyle';
-
-const data = new Array(8).fill({
-	title: 'Title for Item',
-	description: 'Description for Item',
-});
+import ProfileScreenStyle from './ProfileScreen.style';
 
 const ProfileScreen: FC = () => {
-	const authentication = useAuthentication();
+	useInit(onInit);
+	const {user, handleError, handleErrors, signOut: doSignOut, updateUserData} = useAuthentication();
 	const logger = useLogger(ProfileScreen);
 	const [joinedOn, setJoinedOn] = useState('');
+	const [refreshing, setRefreshing] = useState(false);
+	const [roles, setRoles] = useState('');
+	const [roleToBe, setRoleToBe] = useState('');
+
+	async function onInit() {
+		onUserDataUpdate();
+		await updateUserData();
+	}
+
+	function onUserDataUpdate() {
+		if (!user) {
+			return;
+		}
+
+		if (user.createdAt) {
+			setJoinedOn(getHumanizedDate(user.createdAt));
+		}
+
+		if (user.roles) {
+			setRoles(user.roles.map(userRole => getRoleString(userRole.role)).join(' and '));
+			setRoleToBe(user.roles.length === 1 ? 'role is' : 'roles are');
+		}
+	}
+
+	const onRefresh = useCallback(() => {
+		setRefreshing(true);
+		updateUserData().finally(() => {
+			setRefreshing(false);
+		});
+	}, []);
 
 	function onSignOutPressed(event: GestureResponderEvent) {
 		event.preventDefault();
@@ -39,7 +69,7 @@ const ProfileScreen: FC = () => {
 
 	async function signOut() {
 		try {
-			const result = await authentication.signOut();
+			const result = await doSignOut();
 			if (result.errors && result.errors[0]) {
 				const firstError = result.errors[0];
 				const haveAccountProblem =
@@ -51,56 +81,62 @@ const ProfileScreen: FC = () => {
 					return;
 				}
 
-				authentication.handleErrors(result.errors, logger);
+				handleErrors(result.errors, logger);
 			}
 		} catch (error) {
-			authentication.handleError(error, logger);
+			handleError(error, logger);
 		}
 	}
 
-	useEffect(() => {
-		if (authentication.user && authentication.user.createdAt) {
-			setJoinedOn(getHumanizedDate(authentication.user.createdAt));
-		}
-	}, [authentication.user]);
-
-	const renderItemAccessory = props => <Button size="tiny">FOLLOW</Button>;
-
-	const renderItemIcon = props => <Icon {...props} name="person" />;
-
-	const renderItem = ({item, index}) => (
-		<ListItem
-			title={`${item.title} ${index + 1}`}
-			accessoryLeft={renderItemIcon}
-			accessoryRight={renderItemAccessory}
-			ItemSeparatorComponent={Divider}
-		/>
-	);
+	useEffect(onUserDataUpdate, [user]);
 
 	return (
 		<SafeAreaView style={ProfileScreenStyle.container}>
-			<FlatList
-				data={data}
-				renderItem={renderItem}
-				style={ProfileScreenStyle.list}
-				ListHeaderComponent={() => (
-					<View style={ProfileScreenStyle.listHeaderView}>
-						<Avatar
-							style={ProfileScreenStyle.avatar}
-							source={{uri: processResource(authentication.user.image)}}
-							shape="round"
-						/>
-						<Text style={ProfileScreenStyle.nameText}>
-							{authentication.user.firstName} {authentication.user.lastName}
+			<ScrollView
+				style={ProfileScreenStyle.scrollView}
+				contentContainerStyle={ProfileScreenStyle.scrollViewContentContainer}
+				refreshControl={
+					<RefreshControl refreshing={refreshing} onRefresh={onRefresh} title="Refreshing information..." />
+				}>
+				<View style={ProfileScreenStyle.headerView}>
+					<FastImage
+						style={ProfileScreenStyle.avatar}
+						resizeMode={FastImage.resizeMode.contain}
+						source={{
+							uri: API_BASE_URL + user.image,
+							priority: FastImage.priority.high,
+						}}
+					/>
+					<Text style={ProfileScreenStyle.nameText}>
+						{user.firstName} {user.lastName}
+					</Text>
+					{!!joinedOn && (
+						<Text style={ProfileScreenStyle.joinedOnText} appearance="hint">
+							Joined on {joinedOn}
 						</Text>
-						{!!joinedOn && (
-							<Text style={ProfileScreenStyle.joinedOnText} appearance="hint">
-								Joined on {joinedOn}
-							</Text>
-						)}
-					</View>
-				)}
-			/>
+					)}
+				</View>
+				<Card style={ProfileScreenStyle.usernameCard} header={createCardHeader('Username')}>
+					<Text>{user.username}</Text>
+				</Card>
+				<Card style={ProfileScreenStyle.emailAddressCard} header={createCardHeader('Email Address')}>
+					<Text>{user.emailAddress}</Text>
+				</Card>
+				<Card style={ProfileScreenStyle.workRolesCard} header={createCardHeader('Work Roles')}>
+					{roles ? (
+						<Text>
+							Your {roleToBe} {roles}.
+						</Text>
+					) : (
+						<Text>Your roles have not been assigned.</Text>
+					)}
+				</Card>
+				<View style={ProfileScreenStyle.actionView}>
+					<Button style={ProfileScreenStyle.signOutButton} status="danger" onPress={onSignOutPressed}>
+						SIGN OUT
+					</Button>
+				</View>
+			</ScrollView>
 		</SafeAreaView>
 	);
 };

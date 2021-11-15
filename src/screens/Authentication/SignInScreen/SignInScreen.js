@@ -1,12 +1,11 @@
 import React, {FC, useRef, useState} from 'react';
-import {Alert, KeyboardAvoidingView, SafeAreaView, TouchableOpacity, useColorScheme, View} from 'react-native';
-import {useSafeAreaInsets} from 'react-native-safe-area-context';
+import {Alert, KeyboardAvoidingView, SafeAreaView, TouchableOpacity, View} from 'react-native';
 import {Button, Card, Icon, Input} from '@ui-kitten/components';
 import SpinnerOverlay from 'react-native-loading-spinner-overlay';
 import ErrorCode from '../../../core/enums/ErrorCode';
 import useAuthentication from '../../../libs/hooks/AuthenticationHook';
 import useLogger from '../../../libs/hooks/LoggerHook';
-import SignInScreenStyle from './SignInScreenStyle';
+import SignInScreenStyle from './SignInScreen.style';
 import AppTitleImage from '../../../components/AppTitleImage';
 
 const SignInScreen: FC = () => {
@@ -61,7 +60,6 @@ const SignInScreen: FC = () => {
 			}
 		} catch (error) {
 			authentication.handleError(error, logger);
-		} finally {
 			setIsSigningIn(false);
 		}
 	}

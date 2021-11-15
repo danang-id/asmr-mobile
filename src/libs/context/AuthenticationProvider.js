@@ -1,18 +1,19 @@
 import React, {FC, useEffect} from 'react';
+import ErrorCode from '../../core/enums/ErrorCode';
 import User from '../../core/entities/User';
 import parseEntity from '../common/EntityParser';
 import useInit from '../hooks/InitHook';
 import usePersistedState from '../hooks/PersistedStateHook';
+import type {PersistedStateResult} from '../hooks/PersistedStateHook';
 import useServices from '../hooks/ServiceHook';
 import AuthenticationContext from './AuthenticationContext';
 import useLogger from '../hooks/LoggerHook';
-import ErrorCode from '../../core/enums/ErrorCode';
 
 const AuthenticationProvider: FC = ({children}) => {
 	useInit(onInit);
 	const logger = useLogger(AuthenticationProvider);
 	const services = useServices();
-	const [user, setUser] = usePersistedState('AUTHENTICATED_USER');
+	const [user, setUser]: PersistedStateResult<User> = usePersistedState('AUTHENTICATED_USER');
 
 	function parseUserData(data: User): User {
 		const clone = parseEntity(data);
@@ -54,6 +55,7 @@ const AuthenticationProvider: FC = ({children}) => {
 		const response = await services.gate.authenticate({username, password, rememberMe: true});
 		if (response.isSuccess && response.data) {
 			setUser(parseUserData(response.data));
+			// await FileCaching.fetchToCache(response.data.image);
 		}
 
 		return response;
@@ -62,6 +64,7 @@ const AuthenticationProvider: FC = ({children}) => {
 	async function signOut() {
 		const response = await services.gate.clearSession();
 		if (response.isSuccess) {
+			// await FileCaching.removeCache(user.image);
 			setUser(undefined);
 		}
 		return response;

@@ -1,11 +1,11 @@
 import {Platform} from 'react-native';
-import axios, {AxiosInstance, AxiosRequestConfig, AxiosResponse, CancelTokenSource} from 'axios';
+import axios, {AxiosError, AxiosInstance, AxiosRequestConfig, AxiosResponse, CancelTokenSource} from 'axios';
+import {API_BASE_URL} from '@env';
 import EncryptedStorage from 'react-native-encrypted-storage';
 import type {SetProgressInfo} from '../libs/context/ProgressContextInfo';
 import {version} from '../../package.json';
 import type {ILogger} from '../libs/common/Logger';
 import Logger from '../libs/common/Logger';
-import {AxiosError} from 'axios';
 
 export interface ServiceLogOptions {
 	requestHeader?: boolean;
@@ -19,7 +19,6 @@ export interface ServiceOptions {
 }
 
 export default class ServiceBase {
-	API_BASE_URL = 'https://asmr.hamzahjundi.me';
 	CSRF_REQUEST_TOKEN_COOKIE_NAME = 'ASMR.CSRF-Request-Token';
 	CSRF_TOKEN_HEADER_NAME = 'X-CSRF-Token';
 	SERVICE_COOKIES_STORAGE_KEY = 'SERVICE_COOKIES';
@@ -42,7 +41,7 @@ export default class ServiceBase {
 		};
 		this.setProgress = setProgress ?? (() => {});
 		this.client = axios.create({
-			baseURL: this.API_BASE_URL,
+			baseURL: API_BASE_URL,
 			cancelToken: cancelTokenSource.token,
 			headers: {
 				Accept: 'application/json',
@@ -54,12 +53,15 @@ export default class ServiceBase {
 			validateStatus: status => status >= 200 && status <= 504,
 		});
 
-		this.client.interceptors.request.use(this.onRequestFulfilled.bind(this), this.onRequestRejected.bind(this));
+		this.client.interceptors.request.use(this._onRequestFulfilled.bind(this), this._onRequestRejected.bind(this));
 
-		this.client.interceptors.response.use(this.onResponseFulfilled.bind(this), this.onResponseRejected.bind(this));
+		this.client.interceptors.response.use(
+			this._onResponseFulfilled.bind(this),
+			this._onResponseRejected.bind(this),
+		);
 	}
 
-	logRequest(request: AxiosRequestConfig, response: AxiosResponse) {
+	_logRequest(request: AxiosRequestConfig, response: AxiosResponse) {
 		this.logger.info(`[${response.status}] ${request.method.toUpperCase()} ${request.url}`);
 		if (this.options.log.requestHeader === true) {
 			this.logger.info(request.headers);
@@ -75,11 +77,11 @@ export default class ServiceBase {
 		}
 	}
 
-	logError(error: AxiosError) {
+	_logError(error: AxiosError) {
 		this.logger.error(error);
 	}
 
-	async onRequestFulfilled(request: AxiosRequestConfig) {
+	async _onRequestFulfilled(request: AxiosRequestConfig) {
 		this.setProgress(true, 0);
 
 		const cookieHeader = await EncryptedStorage.getItem(this.SERVICE_COOKIES_STORAGE_KEY);
@@ -95,12 +97,12 @@ export default class ServiceBase {
 		return request;
 	}
 
-	onRequestRejected(error: AxiosError) {
-		this.logError(error);
+	_onRequestRejected(error: AxiosError) {
+		this._logError(error);
 		return Promise.reject(error);
 	}
 
-	async onResponseFulfilled(response: AxiosResponse) {
+	async _onResponseFulfilled(response: AxiosResponse) {
 		const setCookieHeaders = response.headers['set-cookie'];
 		if (setCookieHeaders) {
 			let setCookieHeaderString = '';
@@ -124,21 +126,21 @@ export default class ServiceBase {
 			}
 		}
 
-		this.logRequest(response.config, response);
+		this._logRequest(response.config, response);
 		this.setProgress(true, 1);
 		return response;
 	}
 
-	onResponseRejected(error: AxiosError) {
-		this.logError(error);
+	_onResponseRejected(error: AxiosError) {
+		this._logError(error);
 		return Promise.reject(error);
 	}
 
-	processData<T>(response: AxiosResponse<T>): T {
+	_processData<T>(response: AxiosResponse<T>): T {
 		return response.data;
 	}
 
-	finalize() {
+	_finalize() {
 		this.setProgress(false, 0);
 	}
 }

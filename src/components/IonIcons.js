@@ -23,6 +23,6 @@ const IconProvider = name => ({
 });
 
 function IonIcons({name, style}) {
-	const {height, tintColor, ...iconStyle} = StyleSheet.flatten(style);
+	const {height, tintColor, ...iconStyle} = StyleSheet.flatten(style ?? {});
 	return <Icon name={name} size={height} color={tintColor} style={iconStyle} />;
 }
