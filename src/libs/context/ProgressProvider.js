@@ -1,10 +1,18 @@
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import ProgressContext from './ProgressContext';
-// import useLogger from '../hooks/LoggerHook';
+import useLogger from '../hooks/LoggerHook';
+import usePrevious from '../hooks/PreviousHook';
+
+const ProgressLogConfig = {
+	useLog: false,
+	logLoading: true,
+	logPercentage: false,
+};
 
 function ProgressProvider({children}): JSX.Element {
-	// const logger = useLogger(ProgressProvider);
+	const logger = useLogger(ProgressProvider);
 	const [progressInfo, setProgressInfo] = useState({loading: false, percentage: 0});
+	const prevProgressInfo = usePrevious(progressInfo);
 
 	function setProgress(loading: boolean, percentage: number = 0) {
 		if (percentage <= 0) {
@@ -16,10 +24,25 @@ function ProgressProvider({children}): JSX.Element {
 		setProgressInfo({loading, percentage});
 	}
 
-	// useEffect(() => {
-	// 	const {loading, percentage} = progressInfo;
-	// 	logger.info('Loading:', loading, 'Percentage:', percentage);
-	// }, [progressInfo]);
+	function onProgressInfoChanged() {
+		if (!ProgressLogConfig.useLog) {
+			return;
+		}
+
+		if (ProgressLogConfig.logLoading && progressInfo?.loading !== prevProgressInfo?.loading) {
+			logger.info(progressInfo.loading ? 'Loading Started' : 'Loading Finished');
+		}
+		if (
+			ProgressLogConfig.logPercentage &&
+			progressInfo.percentage !== prevProgressInfo?.percentage &&
+			progressInfo.percentage > 0 &&
+			progressInfo.percentage < 1
+		) {
+			logger.info(progressInfo.percentage * 100 + '% loaded');
+		}
+	}
+
+	useEffect(onProgressInfoChanged, [progressInfo]);
 
 	return <ProgressContext.Provider value={[progressInfo, setProgress]}>{children}</ProgressContext.Provider>;
 }

@@ -4,8 +4,8 @@
         android:drawable="@color/white"/>
 
     <item
-        android:width="200dp"
-        android:height="200dp"
+        android:width="256dp"
+        android:height="384dp"
         android:drawable="@mipmap/launch_screen_logo"
         android:gravity="center" />
 </layer-list>

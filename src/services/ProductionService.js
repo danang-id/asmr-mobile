@@ -9,6 +9,7 @@ export default class ProductionService extends ServiceBase {
 
 	async getAll(showMine: boolean = true): Promise<ProductionsResponseModel> {
 		try {
+			this._start();
 			const response = await this.client.get(this.#servicePath, {
 				params: {showMine},
 			});
@@ -20,6 +21,7 @@ export default class ProductionService extends ServiceBase {
 
 	async getById(id: string): Promise<ProductionResponseModel> {
 		try {
+			this._start();
 			const response = await this.client.get(this.#servicePath + id);
 			return this._processData(response);
 		} finally {
@@ -29,6 +31,7 @@ export default class ProductionService extends ServiceBase {
 
 	async start(body: StartProductionRequestModel): Promise<ProductionResponseModel> {
 		try {
+			this._start();
 			const response = await this.client.post(this.#servicePath + 'start', body);
 			return this._processData(response);
 		} finally {
@@ -38,6 +41,7 @@ export default class ProductionService extends ServiceBase {
 
 	async finalize(id: string, body: FinalizeProductionRequestModel): Promise<ProductionResponseModel> {
 		try {
+			this._start();
 			const response = await this.client.post(this.#servicePath + 'finalize/' + id, body);
 			return this._processData(response);
 		} finally {
@@ -47,6 +51,7 @@ export default class ProductionService extends ServiceBase {
 
 	async cancel(id: string): Promise<ProductionResponseModel> {
 		try {
+			this._start();
 			const response = await this.client.delete(this.#servicePath + 'cancel/' + id);
 			return this._processData(response);
 		} finally {

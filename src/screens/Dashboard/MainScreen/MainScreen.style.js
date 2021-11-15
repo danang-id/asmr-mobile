@@ -1,6 +1,6 @@
 import {StyleSheet} from 'react-native';
 
-export default StyleSheet.create({
+const MainScreenStyle = StyleSheet.create({
 	container: {
 		minHeight: '100%',
 	},
@@ -35,7 +35,21 @@ export default StyleSheet.create({
 	productionStatusCard: {
 		marginBottom: 10,
 	},
+	productionStatusText: {
+		fontSize: 16,
+		fontWeight: '700',
+	},
+	productionFinishText: {
+		marginTop: 10,
+		fontSize: 16,
+	},
+	productionFinishButton: {
+		marginTop: 20,
+	},
+
 	productionHistoryCard: {
 		marginBottom: 15,
 	},
 });
+
+export default MainScreenStyle;

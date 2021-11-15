@@ -1,24 +1,55 @@
+// noinspection DuplicatedCode
+
 import React, {FC, useEffect, useRef, useState} from 'react';
-import {Alert, Platform, View} from 'react-native';
-import {useNavigation} from '@react-navigation/native';
+import {Alert, FlatList, Platform, View} from 'react-native';
+import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {Button, Text} from '@ui-kitten/components';
 import {check as checkPermission, openSettings} from 'react-native-permissions';
 import QRCodeScanner from 'react-native-qrcode-scanner';
 import {BarCodeReadEvent, RNCamera} from 'react-native-camera';
 import {API_BASE_URL} from '@env';
 import ErrorCode from '../../../core/enums/ErrorCode';
+import AppTitleImage from '../../../components/AppTitleImage';
 import useInit from '../../../libs/hooks/InitHook';
 import useLogger from '../../../libs/hooks/LoggerHook';
 import useServices from '../../../libs/hooks/ServiceHook';
+import IncomingGreenBeanRoutes from '../AddGreenBeanStockRoutes';
 
 import ScanIncomingGreenBeanScreenStyle from './ScanIncomingGreenBeanScreen.style';
 
 const beanPublicationUrl = API_BASE_URL + '/pub/bean/';
+const permissionSteps = {
+	android: [
+		{
+			step: 1,
+			text: 'Tap "Allow Camera Use" button bellow.',
+		},
+		{
+			step: 2,
+			text: 'Tap "Permissions".',
+		},
+		{
+			step: 3,
+			text: 'Tap "Camera" and set to Allow.',
+		},
+	],
+	ios: [
+		{
+			step: 1,
+			text: 'Tap "Allow Camera Use" button bellow.',
+		},
+		{
+			step: 2,
+			text: 'Toggle "Camera" permission to allow camera use.',
+		},
+	],
+};
 
-const ScanIncomingGreenBeanScreen: FC = () => {
+type ScanIncomingGreenBeanScreenProps = NativeStackScreenProps<{}, IncomingGreenBeanRoutes.ScanIncomingGreenBean>;
+
+const ScanIncomingGreenBeanScreen: FC<ScanIncomingGreenBeanScreenProps> = ({navigation}) => {
 	useInit(onInit);
 	const logger = useLogger(ScanIncomingGreenBeanScreen);
-	const navigation = useNavigation();
 	const {handleError, handleErrors, bean: beanService} = useServices();
 
 	const [bean, setBean] = useState();
@@ -41,6 +72,11 @@ const ScanIncomingGreenBeanScreen: FC = () => {
 		}
 	}
 
+	function onNavigationFocus() {
+		setBeanId();
+		scannerRef.current?.reactivate();
+	}
+
 	function onQrCodeRead(event: BarCodeReadEvent) {
 		const qrCodeData = event.data ?? '';
 		if (!qrCodeData.startsWith(beanPublicationUrl)) {
@@ -55,6 +91,7 @@ const ScanIncomingGreenBeanScreen: FC = () => {
 
 	function onBeanIdChanged() {
 		if (!beanId) {
+			setBean();
 			return;
 		}
 
@@ -62,7 +99,11 @@ const ScanIncomingGreenBeanScreen: FC = () => {
 	}
 
 	function onBeanChanged() {
-		// TODO: Something
+		if (!bean) {
+			return;
+		}
+
+		navigation.navigate(IncomingGreenBeanRoutes.BeanInformation, {bean});
 	}
 
 	async function getBean() {
@@ -104,6 +145,12 @@ const ScanIncomingGreenBeanScreen: FC = () => {
 		]);
 	}
 
+	useEffect(() => {
+		navigation.addListener('focus', onNavigationFocus);
+		return () => {
+			navigation.removeListener('focus', onNavigationFocus);
+		};
+	});
 	useEffect(onBeanIdChanged, [beanId]);
 	useEffect(onBeanChanged, [bean]);
 
@@ -111,7 +158,7 @@ const ScanIncomingGreenBeanScreen: FC = () => {
 		<View style={ScanIncomingGreenBeanScreenStyle.topContent}>
 			{cameraUseAllowed && (
 				<Text category="h6" style={ScanIncomingGreenBeanScreenStyle.topContentText}>
-					Please scan the QR Code of the incoming green bean.
+					Please scan the QR Code of the green bean.
 				</Text>
 			)}
 		</View>
@@ -119,15 +166,28 @@ const ScanIncomingGreenBeanScreen: FC = () => {
 
 	const BottomContent: FC = () => (
 		<View style={ScanIncomingGreenBeanScreenStyle.bottomContent}>
-			{!!bean && (
-				<Text category="h6" style={ScanIncomingGreenBeanScreenStyle.bottomContentText}>
-					Found bean: {bean.name}
-				</Text>
-			)}
+			<AppTitleImage style={ScanIncomingGreenBeanScreenStyle.appTitleImage} />
 		</View>
 	);
 
+	const InstructionItem: FC = ({step, text}) => (
+		<Text style={ScanIncomingGreenBeanScreenStyle.permissionStepText}>
+			{step}. {text}
+		</Text>
+	);
+
+	function renderInstructionItem({item}) {
+		return <InstructionItem step={item.step} text={item.text} />;
+	}
+
 	const NotAuthorizedView: FC = () => {
+		let steps = [];
+		if (Platform.OS === 'android') {
+			steps = permissionSteps.android;
+		} else if (Platform.OS === 'ios') {
+			steps = permissionSteps.ios;
+		}
+
 		function onAllowCameraUseButtonPressed() {
 			openSettings().then();
 		}
@@ -140,10 +200,15 @@ const ScanIncomingGreenBeanScreen: FC = () => {
 				<Text style={ScanIncomingGreenBeanScreenStyle.cameraRequirementText}>
 					Camera is needed to scan the QR code of the incoming green bean.
 				</Text>
-				<Text style={ScanIncomingGreenBeanScreenStyle.permissionInstructionText}>
-					To allow camera use, you can open application permission under your device settings, and then allow
-					Camera permission.
+				<Text style={ScanIncomingGreenBeanScreenStyle.permissionInstructionText} category="s1">
+					Please follow this instruction:
 				</Text>
+				<FlatList
+					contentContainerStyle={ScanIncomingGreenBeanScreenStyle.permissionStepList}
+					data={steps}
+					renderItem={renderInstructionItem}
+					keyExtractor={item => item.step}
+				/>
 
 				<Button onPress={onAllowCameraUseButtonPressed}>Allow Camera Use</Button>
 			</View>
@@ -158,11 +223,16 @@ const ScanIncomingGreenBeanScreen: FC = () => {
 			bottomContent={<BottomContent />}
 			notAuthorizedView={<NotAuthorizedView />}
 			cameraType="back"
+			cameraStyle={ScanIncomingGreenBeanScreenStyle.camera}
+			containerStyle={ScanIncomingGreenBeanScreenStyle.container}
 			flashMode={RNCamera.Constants.FlashMode.auto}
 			checkAndroid6Permissions
-			permissionDialogTitle="Requesting Permission"
-			permissionDialogMessage="asmr need to use the camera to scan the QR code of the bean."
-			buttonPositive="Allow"
+			permissionDialogTitle="Permission Needed"
+			permissionDialogMessage={
+				'asmr need to use the camera to scan the QR code of the green bean.\n\n' +
+				'Please tap Allow on the dialog that will appear next.'
+			}
+			buttonPositive="I Understand"
 		/>
 	);
 };

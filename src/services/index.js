@@ -31,13 +31,11 @@ export type ServiceErrorsHandlerOptions = {
 	showLog: boolean,
 };
 
-function createServices(setProgress?: SetProgressInfo): Services {
+function createServices(setProgress: SetProgressInfo): Services {
 	const cancelTokenSource = axios.CancelToken.source();
 
 	function abort(message?: string) {
-		if (setProgress) {
-			setProgress(false, 0);
-		}
+		setProgress(false, 0);
 		cancelTokenSource.cancel(message);
 	}
 
@@ -102,10 +100,10 @@ function createServices(setProgress?: SetProgressInfo): Services {
 		abort,
 		handleError,
 		handleErrors,
-		bean: new BeanService(cancelTokenSource, undefined, setProgress),
-		gate: new GateService(cancelTokenSource, undefined, setProgress),
-		incomingGreenBean: new IncomingGreenBeanService(cancelTokenSource, undefined, setProgress),
-		production: new ProductionService(cancelTokenSource, undefined, setProgress),
+		bean: new BeanService(cancelTokenSource, setProgress),
+		gate: new GateService(cancelTokenSource, setProgress),
+		incomingGreenBean: new IncomingGreenBeanService(cancelTokenSource, setProgress),
+		production: new ProductionService(cancelTokenSource, setProgress),
 	};
 }
 

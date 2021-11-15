@@ -1,17 +1,18 @@
 import React, {FC} from 'react';
 import {SafeAreaView, View} from 'react-native';
-import {useNavigation} from '@react-navigation/native';
+import {BottomTabScreenProps} from '@react-navigation/bottom-tabs';
 import {Button, Text} from '@ui-kitten/components';
 
 import AppTitleImage from '../../../components/AppTitleImage';
 import ScreenRoutes from '../../ScreenRoutes';
+import DashboardRoutes from '../DashboardRoutes';
 import CreateScreenStyle from './CreateScreen.style';
 
-const CreateScreen: FC = () => {
-	const navigation = useNavigation();
+type CreateScreenProps = BottomTabScreenProps<{}, DashboardRoutes.Create>;
 
-	function onAddIncomingGreenBeanButtonPressed() {
-		navigation.navigate(ScreenRoutes.IncomingGreenBean);
+const CreateScreen: FC<CreateScreenProps> = ({navigation}) => {
+	function onAddGreenBeanStockButtonPressed() {
+		navigation.navigate(ScreenRoutes.AddGreenBeanStock);
 	}
 
 	function onRoastGreenBeanButtonPressed() {
@@ -27,10 +28,10 @@ const CreateScreen: FC = () => {
 				<View style={CreateScreenStyle.createView}>
 					<Text style={CreateScreenStyle.createQuestionText}>What would you like to do?</Text>
 					<Button
-						style={CreateScreenStyle.addIncomingGreenBeanButton}
-						onPress={onAddIncomingGreenBeanButtonPressed}
+						style={CreateScreenStyle.addGreenBeanStockButton}
+						onPress={onAddGreenBeanStockButtonPressed}
 						size="large">
-						Add Incoming Green Bean
+						Add Green Bean Stock
 					</Button>
 					<Button
 						style={CreateScreenStyle.roastGreenBeanButton}

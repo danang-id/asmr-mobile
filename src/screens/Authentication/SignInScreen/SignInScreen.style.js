@@ -1,7 +1,7 @@
 import {StyleSheet} from 'react-native';
 import applicationColors from '../../../styles/colors';
 
-export default StyleSheet.create({
+const SignInScreenStyle = StyleSheet.create({
 	container: {
 		minHeight: '100%',
 	},
@@ -36,3 +36,5 @@ export default StyleSheet.create({
 		marginVertical: 10,
 	},
 });
+
+export default SignInScreenStyle;

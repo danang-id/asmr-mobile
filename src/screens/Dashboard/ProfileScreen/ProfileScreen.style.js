@@ -1,6 +1,6 @@
 import {StyleSheet} from 'react-native';
 
-export default StyleSheet.create({
+const ProfileScreenStyle = StyleSheet.create({
 	container: {
 		minHeight: '100%',
 	},
@@ -57,3 +57,5 @@ export default StyleSheet.create({
 		borderRadius: 10,
 	},
 });
+
+export default ProfileScreenStyle;

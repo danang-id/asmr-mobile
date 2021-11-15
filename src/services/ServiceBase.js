@@ -29,7 +29,7 @@ export default class ServiceBase {
 	options: ServiceOptions;
 	setProgress: SetProgressInfo;
 
-	constructor(cancelTokenSource: CancelTokenSource, options?: ServiceOptions, setProgress?: SetProgressInfo) {
+	constructor(cancelTokenSource: CancelTokenSource, setProgress: SetProgressInfo, options?: ServiceOptions) {
 		this.logger = new Logger(ServiceBase.name);
 		this.options = options ?? {
 			log: {
@@ -39,7 +39,7 @@ export default class ServiceBase {
 				responseBody: false,
 			},
 		};
-		this.setProgress = setProgress ?? (() => {});
+		this.setProgress = setProgress;
 		this.client = axios.create({
 			baseURL: API_BASE_URL,
 			cancelToken: cancelTokenSource.token,
@@ -82,8 +82,6 @@ export default class ServiceBase {
 	}
 
 	async _onRequestFulfilled(request: AxiosRequestConfig) {
-		this.setProgress(true, 0);
-
 		const cookieHeader = await EncryptedStorage.getItem(this.SERVICE_COOKIES_STORAGE_KEY);
 		if (cookieHeader) {
 			request.headers.Cookie = cookieHeader;
@@ -94,6 +92,7 @@ export default class ServiceBase {
 			request.headers[this.CSRF_TOKEN_HEADER_NAME] = csrfRequestToken;
 		}
 
+		this.setProgress(true, 0.25);
 		return request;
 	}
 
@@ -127,7 +126,7 @@ export default class ServiceBase {
 		}
 
 		this._logRequest(response.config, response);
-		this.setProgress(true, 1);
+		this.setProgress(true, 0.75);
 		return response;
 	}
 
@@ -136,7 +135,12 @@ export default class ServiceBase {
 		return Promise.reject(error);
 	}
 
+	_start() {
+		this.setProgress(true, 0);
+	}
+
 	_processData<T>(response: AxiosResponse<T>): T {
+		this.setProgress(true, 1);
 		return response.data;
 	}
 

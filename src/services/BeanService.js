@@ -6,6 +6,7 @@ export default class BeanService extends ServiceBase {
 
 	async getById(id: string): Promise<BeanResponseModel> {
 		try {
+			this._start();
 			const response = await this.client.get(this.#servicePath + id);
 			return this._processData(response);
 		} finally {

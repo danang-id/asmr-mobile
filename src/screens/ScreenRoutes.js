@@ -1,5 +1,5 @@
 export default {
 	Dashboard: 'Dashboard',
-	IncomingGreenBean: 'IncomingGreenBean',
+	AddGreenBeanStock: 'AddGreenBeanStock',
 	RoastGreenBean: 'RoastGreenBean',
 };

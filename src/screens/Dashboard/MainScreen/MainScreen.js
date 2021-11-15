@@ -18,11 +18,12 @@ const UnsupportedRoleCard: FC<{userRoles: UserRole[]}> = ({userRoles, ...props})
 	const [roles, setRoles] = useState('other roles');
 
 	function onUseWebDashboardPressed() {
-		Linking.canOpenURL(API_BASE_URL).then(supported => {
+		const dashboardUrl = API_BASE_URL + '/dashboard';
+		Linking.canOpenURL(dashboardUrl).then(supported => {
 			if (supported) {
-				return Linking.openURL(API_BASE_URL);
+				return Linking.openURL(dashboardUrl);
 			} else {
-				Alert.alert(`Failed to open ${API_BASE_URL}.`);
+				Alert.alert(`Failed to open ${dashboardUrl}.`);
 			}
 		});
 	}
@@ -139,15 +140,26 @@ const MainScreen: FC = () => {
 
 	const SupportedView: FC = () => (
 		<View>
-			<Card style={MainScreenStyle.productionStatusCard}>
+			<Card
+				style={MainScreenStyle.productionStatusCard}
+				status={currentProduction && currentBean ? 'info' : undefined}>
 				{currentProduction && currentBean ? (
-					<Text category="s1" status="info">
-						You are now roasting {currentProduction.greenBeanWeight} gram(s) of {currentBean.name} bean.
-					</Text>
+					<View>
+						<Text style={MainScreenStyle.productionStatusText}>
+							You are currently roasting {currentProduction.greenBeanWeight} gram(s) of {currentBean.name}{' '}
+							bean.
+						</Text>
+						<Text style={MainScreenStyle.productionFinishText}>
+							If you have finished the roasting process, please tap Finish Roasting.
+						</Text>
+						<Button style={MainScreenStyle.productionFinishButton} status="success">
+							Finish Roasting
+						</Button>
+					</View>
 				) : (
 					<View>
-						<Text category="s1" status="info">
-							You are not roasting any beans at the moment.
+						<Text style={MainScreenStyle.productionStatusText}>
+							You are not roasting beans at the moment.
 						</Text>
 					</View>
 				)}
@@ -157,11 +169,11 @@ const MainScreen: FC = () => {
 				status="primary"
 				header={createCardHeader('Roasting History', 'list of beans you have roasted')}>
 				{roastedBeanProductions && roastedBeanProductions.length > 0 ? (
-					<Text>You tried to roast beans {roastedBeanProductions.length} times.</Text>
+					<Text>You have roasted beans {roastedBeanProductions.length} times.</Text>
 				) : (
 					<Text>
-						You have never roasted any beans yet.{'\n\n'}
-						Try to roast a bean!
+						You have never roasted any beans yet.{'\n'}
+						Let's roast a bean!
 					</Text>
 				)}
 			</Card>

@@ -13,6 +13,7 @@ import {applicationLightTheme, applicationDarkTheme} from './styles/theme';
 import {IonIconsPack} from './components/IonIcons';
 import {MaterialIconsPack} from './components/MaterialIcons';
 import {SafeAreaProvider} from 'react-native-safe-area-context/src/SafeAreaContext';
+import ProgressProvider from './libs/context/ProgressProvider';
 
 const isHermes = () => !!global.HermesInternal;
 
@@ -24,10 +25,13 @@ const Application: () => Node = () => {
 	useInit(onInit);
 	const colorScheme = useColorScheme();
 	const logger = useLogger(Application);
-	const [theme, setTheme] = useState(colorScheme === 'dark' ? applicationDarkTheme : applicationLightTheme);
+	// TODO: Fix dark mode
+	// const [theme, setTheme] = useState(colorScheme === 'dark' ? applicationDarkTheme : applicationLightTheme);
+	const [theme, setTheme] = useState(applicationLightTheme);
 
 	useEffect(() => {
-		setTheme(colorScheme === 'dark' ? applicationDarkTheme : applicationLightTheme);
+		// setTheme(colorScheme === 'dark' ? applicationDarkTheme : applicationLightTheme);
+		setTheme(applicationLightTheme);
 		logger.info(`Color scheme changed to "${colorScheme}"`);
 	}, [colorScheme]);
 
@@ -40,13 +44,15 @@ const Application: () => Node = () => {
 	return (
 		<SafeAreaProvider>
 			<NavigationContainer>
-				<AuthenticationProvider>
-					<IconRegistry icons={[IonIconsPack, MaterialIconsPack]} />
-					<UIKittenProvider {...eva} theme={theme}>
-						<StatusBar barStyle={colorScheme === 'dark' ? 'light-content' : 'dark-content'} />
-						<ScreenNavigator />
-					</UIKittenProvider>
-				</AuthenticationProvider>
+				<ProgressProvider>
+					<AuthenticationProvider>
+						<IconRegistry icons={[IonIconsPack, MaterialIconsPack]} />
+						<UIKittenProvider {...eva} theme={theme}>
+							<StatusBar barStyle={colorScheme === 'dark' ? 'light-content' : 'dark-content'} />
+							<ScreenNavigator />
+						</UIKittenProvider>
+					</AuthenticationProvider>
+				</ProgressProvider>
 			</NavigationContainer>
 		</SafeAreaProvider>
 	);

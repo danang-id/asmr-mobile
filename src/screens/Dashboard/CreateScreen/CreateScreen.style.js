@@ -1,6 +1,6 @@
 import {Dimensions, StyleSheet} from 'react-native';
 
-export default StyleSheet.create({
+const CreateScreenStyle = StyleSheet.create({
 	container: {
 		minHeight: '100%',
 	},
@@ -30,8 +30,10 @@ export default StyleSheet.create({
 		fontWeight: '600',
 		marginBottom: 20,
 	},
-	addIncomingGreenBeanButton: {
+	addGreenBeanStockButton: {
 		marginBottom: 10,
 	},
 	roastGreenBeanButton: {},
 });
+
+export default CreateScreenStyle;

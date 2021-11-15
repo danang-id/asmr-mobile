@@ -8,6 +8,7 @@ export default class IncomingGreenBeanService extends ServiceBase {
 
 	async getAll(showMine: boolean = true): Promise<IncomingGreenBeansResponseModel> {
 		try {
+			this._start();
 			const response = await this.client.get(this.#servicePath, {
 				params: {showMine},
 			});
@@ -19,6 +20,7 @@ export default class IncomingGreenBeanService extends ServiceBase {
 
 	async create(id: string, body: CreateIncomingGreenBeanRequestModel): Promise<BeanResponseModel> {
 		try {
+			this._start();
 			const response = await this.client.post(this.#servicePath + id, body);
 			return this._processData(response);
 		} finally {

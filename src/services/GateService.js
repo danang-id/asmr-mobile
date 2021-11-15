@@ -7,6 +7,7 @@ export default class GateService extends ServiceBase {
 
 	async authenticate(body: SignInRequestModel): Promise<AuthenticationResponseModel> {
 		try {
+			this._start();
 			const response = await this.client.post(this.#servicePath + 'authenticate', body);
 			return this._processData(response);
 		} finally {
@@ -16,6 +17,7 @@ export default class GateService extends ServiceBase {
 
 	async clearSession(): Promise<AuthenticationResponseModel> {
 		try {
+			this._start();
 			const response = await this.client.post(this.#servicePath + 'exit');
 			return this._processData(response);
 		} finally {
@@ -25,6 +27,7 @@ export default class GateService extends ServiceBase {
 
 	async getUserPassport(): Promise<AuthenticationResponseModel> {
 		try {
+			this._start();
 			const response = await this.client.get(this.#servicePath + 'passport');
 			return this._processData(response);
 		} finally {
