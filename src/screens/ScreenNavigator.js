@@ -15,6 +15,7 @@ const Stack = createNativeStackNavigator();
 const ScreenNavigator: FC = () => {
 	useInit(onInit);
 	const {user, isAuthenticated, isAuthorized, updateUserData} = useAuthentication();
+
 	const [isRoaster, setIsRoaster] = useState(false);
 
 	async function onInit() {

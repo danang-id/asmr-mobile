@@ -1,11 +1,18 @@
+import {CancelTokenSource} from 'axios';
 import StartProductionRequestModel from '../core/request/StartProductionRequestModel';
 import FinalizeProductionRequestModel from '../core/request/FinalizeProductionRequestModel';
 import ProductionResponseModel from '../core/response/ProductionResponseModel';
 import ProductionsResponseModel from '../core/response/ProductionsResponseModel';
-import ServiceBase from './ServiceBase';
+import type {SetProgressInfo} from '../libs/context/ProgressContextInfo';
+import ServiceBase, {ServiceOptions} from './ServiceBase';
 
 export default class ProductionService extends ServiceBase {
 	#servicePath = '/api/production/';
+
+	constructor(cancelTokenSource: CancelTokenSource, setProgress: SetProgressInfo, options?: ServiceOptions) {
+		super(cancelTokenSource, setProgress, options);
+		super.tag = ProductionService.name;
+	}
 
 	async getAll(showMine: boolean = true): Promise<ProductionsResponseModel> {
 		try {

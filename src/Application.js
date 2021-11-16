@@ -16,6 +16,7 @@ import {SafeAreaProvider} from 'react-native-safe-area-context/src/SafeAreaConte
 import ProgressProvider from './libs/context/ProgressProvider';
 
 const isHermes = () => !!global.HermesInternal;
+const isV8 = () => !!global._v8runtime;
 
 /*
  * TODO: Dark mode does not work very well with our current theming,
@@ -36,7 +37,12 @@ const Application: () => Node = () => {
 	}, [colorScheme]);
 
 	async function onInit() {
-		const engine = isHermes() ? 'Hermes' : 'JavaScriptCore';
+		let engine = 'JavaScriptCore';
+		if (isHermes()) {
+			engine = 'Hermes';
+		} else if (isV8()) {
+			engine = 'V8';
+		}
 		const deviceName = await getDeviceName();
 		logger.info(`${appName} is running on ${deviceName} using ${engine} engine`);
 	}

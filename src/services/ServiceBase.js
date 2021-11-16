@@ -1,11 +1,10 @@
 import {Platform} from 'react-native';
 import axios, {AxiosError, AxiosInstance, AxiosRequestConfig, AxiosResponse, CancelTokenSource} from 'axios';
-import {API_BASE_URL} from '@env';
 import EncryptedStorage from 'react-native-encrypted-storage';
+import {API_BASE_URL} from '@env';
+import Logger from '../libs/common/Logger';
 import type {SetProgressInfo} from '../libs/context/ProgressContextInfo';
 import {version} from '../../package.json';
-import type {ILogger} from '../libs/common/Logger';
-import Logger from '../libs/common/Logger';
 
 export interface ServiceLogOptions {
 	requestHeader?: boolean;
@@ -19,18 +18,17 @@ export interface ServiceOptions {
 }
 
 export default class ServiceBase {
-	CSRF_REQUEST_TOKEN_COOKIE_NAME = 'ASMR.CSRF-Request-Token';
-	CSRF_TOKEN_HEADER_NAME = 'X-CSRF-Token';
-	SERVICE_COOKIES_STORAGE_KEY = 'SERVICE_COOKIES';
-	SERVICE_CSRF_REQUEST_TOKEN_STORAGE_KEY = 'SERVICE_CSRF_REQUEST_TOKEN';
+	static CSRF_REQUEST_TOKEN_COOKIE_NAME = 'ASMR.CSRF-Request-Token';
+	static CSRF_TOKEN_HEADER_NAME = 'X-CSRF-Token';
+	static SERVICE_COOKIES_STORAGE_KEY = 'SERVICE_COOKIES';
+	static SERVICE_CSRF_REQUEST_TOKEN_STORAGE_KEY = 'SERVICE_CSRF_REQUEST_TOKEN';
 
 	client: AxiosInstance;
-	logger: ILogger;
 	options: ServiceOptions;
 	setProgress: SetProgressInfo;
+	tag: string = ServiceBase.name;
 
 	constructor(cancelTokenSource: CancelTokenSource, setProgress: SetProgressInfo, options?: ServiceOptions) {
-		this.logger = new Logger(ServiceBase.name);
 		this.options = options ?? {
 			log: {
 				requestHeader: false,
@@ -62,34 +60,34 @@ export default class ServiceBase {
 	}
 
 	_logRequest(request: AxiosRequestConfig, response: AxiosResponse) {
-		this.logger.info(`[${response.status}] ${request.method.toUpperCase()} ${request.url}`);
+		Logger.info(this.tag, `[${response.status}] ${request.method.toUpperCase()} ${request.url}`);
 		if (this.options.log.requestHeader === true) {
-			this.logger.info(request.headers);
+			Logger.info(this.tag, request.headers);
 		}
 		if (this.options.log.requestBody === true && request.data) {
-			this.logger.info(`Request: ${request.data}`);
+			Logger.info(this.tag, `Request: ${request.data}`);
 		}
 		if (this.options.log.responseHeader === true) {
-			this.logger.info(response.headers);
+			Logger.info(this.tag, response.headers);
 		}
 		if (this.options.log.responseBody === true && response.data) {
-			this.logger.info(`Response: ${JSON.stringify(response.data)}`);
+			Logger.info(this.tag, `Response: ${JSON.stringify(response.data)}`);
 		}
 	}
 
 	_logError(error: AxiosError) {
-		this.logger.error(error);
+		Logger.error(this.tag, error);
 	}
 
 	async _onRequestFulfilled(request: AxiosRequestConfig) {
-		const cookieHeader = await EncryptedStorage.getItem(this.SERVICE_COOKIES_STORAGE_KEY);
+		const cookieHeader = await EncryptedStorage.getItem(ServiceBase.SERVICE_COOKIES_STORAGE_KEY);
 		if (cookieHeader) {
 			request.headers.Cookie = cookieHeader;
 		}
 
-		const csrfRequestToken = await EncryptedStorage.getItem(this.SERVICE_CSRF_REQUEST_TOKEN_STORAGE_KEY);
+		const csrfRequestToken = await EncryptedStorage.getItem(ServiceBase.SERVICE_CSRF_REQUEST_TOKEN_STORAGE_KEY);
 		if (csrfRequestToken) {
-			request.headers[this.CSRF_TOKEN_HEADER_NAME] = csrfRequestToken;
+			request.headers[ServiceBase.CSRF_TOKEN_HEADER_NAME] = csrfRequestToken;
 		}
 
 		this.setProgress(true, 0.25);
@@ -112,15 +110,15 @@ export default class ServiceBase {
 			} else if (typeof setCookieHeaders === 'string') {
 				setCookieHeaderString = setCookieHeaders;
 			}
-			await EncryptedStorage.setItem(this.SERVICE_COOKIES_STORAGE_KEY, setCookieHeaderString);
+			await EncryptedStorage.setItem(ServiceBase.SERVICE_COOKIES_STORAGE_KEY, setCookieHeaderString);
 
 			const cookies = setCookieHeaderString.split(',');
 			for (const cookie of cookies) {
 				const cookieBase = cookie.trim().split(';')[0].split('=');
 				const cookieName = cookieBase[0];
-				if (cookieName === this.CSRF_REQUEST_TOKEN_COOKIE_NAME) {
+				if (cookieName === ServiceBase.CSRF_REQUEST_TOKEN_COOKIE_NAME) {
 					const cookieValue = cookieBase[1];
-					await EncryptedStorage.setItem(this.SERVICE_CSRF_REQUEST_TOKEN_STORAGE_KEY, cookieValue);
+					await EncryptedStorage.setItem(ServiceBase.SERVICE_CSRF_REQUEST_TOKEN_STORAGE_KEY, cookieValue);
 				}
 			}
 		}

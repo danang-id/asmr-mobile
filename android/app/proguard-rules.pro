@@ -8,8 +8,10 @@
 #   http://developer.android.com/guide/developing/tools/proguard.html
 
 # Add any project specific keep options here:
--keep class com.facebook.hermes.unicode.** { *; }
--keep class com.facebook.jni.** { *; }
+
+# Hermes Engine
+#-keep class com.facebook.hermes.unicode.** { *; }
+#-keep class com.facebook.jni.** { *; }
 
 # React Native Fast Image
 -keep public class com.dylanvann.fastimage.* {*;}

@@ -1,8 +1,15 @@
+import {CancelTokenSource} from 'axios';
 import BeanResponseModel from '../core/response/BeanResponseModel';
-import ServiceBase from './ServiceBase';
+import type {SetProgressInfo} from '../libs/context/ProgressContextInfo';
+import ServiceBase, {ServiceOptions} from './ServiceBase';
 
 export default class BeanService extends ServiceBase {
 	#servicePath = '/api/bean/';
+
+	constructor(cancelTokenSource: CancelTokenSource, setProgress: SetProgressInfo, options?: ServiceOptions) {
+		super(cancelTokenSource, setProgress, options);
+		super.tag = BeanService.name;
+	}
 
 	async getById(id: string): Promise<BeanResponseModel> {
 		try {

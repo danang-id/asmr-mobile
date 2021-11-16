@@ -57,6 +57,7 @@ const SignInScreen: FC = () => {
 				}
 
 				authentication.handleErrors(result.errors, logger);
+				setIsSigningIn(false);
 			}
 		} catch (error) {
 			authentication.handleError(error, logger);

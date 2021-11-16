@@ -27,7 +27,7 @@
 		"react-native-device-info": "8.4.7",
 		"react-native-dotenv": "3.3.0",
 		"react-native-encrypted-storage": "4.0.2",
-		"react-native-fast-image": "^8.5.11",
+		"react-native-fast-image": "8.5.11",
 		"react-native-file-access": "2.0.0",
 		"react-native-loading-spinner-overlay": "2.0.0",
 		"react-native-permissions": "3.1.0",
@@ -36,7 +36,9 @@
 		"react-native-screens": "3.9.0",
 		"react-native-splash-screen": "3.2.0",
 		"react-native-svg": "12.1.1",
-		"react-native-vector-icons": "9.0.0"
+		"react-native-v8": "0.66.3-patch.1",
+		"react-native-vector-icons": "9.0.0",
+		"v8-android-jit-nointl": "^9.93.0"
 	},
 	"devDependencies": {
 		"@babel/core": "^7.16.0",
