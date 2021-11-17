@@ -7,7 +7,7 @@ import type {ProgressContextInfo} from '../context/ProgressContextInfo';
 function useServices(): Services {
 	const progressContext: ProgressContextInfo = useProgress();
 	const setProgress = progressContext[1];
-	const services = createServices(setProgress);
+	const services: Services = createServices(setProgress);
 	useEffect(() => {
 		return () => services.abort();
 	}, []);

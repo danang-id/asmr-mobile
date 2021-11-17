@@ -51,10 +51,19 @@ const ProfileScreenStyle = StyleSheet.create({
 
 	actionView: {
 		width: '100%',
-		marginBottom: 20,
+		marginBottom: 30,
 	},
 	signOutButton: {
 		borderRadius: 10,
+	},
+
+	aboutView: {
+		marginBottom: 20,
+	},
+	versionText: {
+		textAlign: 'center',
+		fontSize: 14,
+		fontWeight: '600',
 	},
 });
 

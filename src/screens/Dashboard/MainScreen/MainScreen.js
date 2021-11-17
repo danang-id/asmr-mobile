@@ -5,8 +5,8 @@ import {API_BASE_URL} from '@env';
 import UserRole from '../../../core/entities/UserRole';
 import Role from '../../../core/enums/Role';
 import AppTitleImage from '../../../components/AppTitleImage';
-import {createCardHeader} from '../../../libs/common/CardHeader';
-import {getRoleString} from '../../../libs/common/Helpers';
+import {createCardHeader} from '../../../libs/components/CardHeader';
+import {getRoleString} from '../../../libs/common/RoleHelper';
 import useInit from '../../../libs/hooks/InitHook';
 import useAuthentication from '../../../libs/hooks/AuthenticationHook';
 import MainScreenStyle from './MainScreen.style';
@@ -49,7 +49,7 @@ const MainScreen: FC = () => {
 	useInit(onInit);
 	const {user, updateUserData} = useAuthentication();
 	const logger = useLogger(MainScreen);
-	const {handleError, handleErrors, bean, production} = useServices();
+	const {handleError, handleErrors, bean: beanService, production: productionService} = useServices();
 
 	const [currentBean, setCurrentBean] = useState();
 	const [currentProduction, setCurrentProduction] = useState();
@@ -102,7 +102,7 @@ const MainScreen: FC = () => {
 
 	async function updateProductionList() {
 		try {
-			const result = await production.getAll();
+			const result = await productionService.getAll();
 			if (result.isSuccess && result.data) {
 				setRoastedBeanProductions(result.data);
 				return;
@@ -118,7 +118,7 @@ const MainScreen: FC = () => {
 
 	async function getBean(beanId: string) {
 		try {
-			const result = await bean.getById(beanId);
+			const result = await beanService.getById(beanId);
 			if (result.isSuccess && result.data) {
 				setCurrentBean(result.data);
 				return;

@@ -1,6 +1,6 @@
 import {Dirs, FileSystem} from 'react-native-file-access';
 import {API_BASE_URL} from '@env';
-import Logger from './Logger';
+import Logger from '../common/Logger';
 
 class FileCaching {
 	static #tag = FileCaching.name;

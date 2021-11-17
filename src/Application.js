@@ -1,19 +1,19 @@
 import React, {useEffect, useState} from 'react';
 import {StatusBar, useColorScheme} from 'react-native';
-import {getDeviceName} from 'react-native-device-info';
+import {getApplicationName, getDeviceName} from 'react-native-device-info';
+import {SafeAreaProvider} from 'react-native-safe-area-context';
 import {NavigationContainer} from '@react-navigation/native';
 import {ApplicationProvider as UIKittenProvider, IconRegistry} from '@ui-kitten/components';
 import * as eva from '@eva-design/eva';
-import useInit from './libs/hooks/InitHook';
-import useLogger from './libs/hooks/LoggerHook';
-import ScreenNavigator from './screens/ScreenNavigator';
-import {name as appName} from '../app.json';
-import AuthenticationProvider from './libs/context/AuthenticationProvider';
-import {applicationLightTheme, applicationDarkTheme} from './styles/theme';
 import {IonIconsPack} from './components/IonIcons';
 import {MaterialIconsPack} from './components/MaterialIcons';
-import {SafeAreaProvider} from 'react-native-safe-area-context/src/SafeAreaContext';
+import AuthenticationProvider from './libs/context/AuthenticationProvider';
 import ProgressProvider from './libs/context/ProgressProvider';
+import useInit from './libs/hooks/InitHook';
+import useLogger from './libs/hooks/LoggerHook';
+import useUpdateChecker from './libs/hooks/UpdateChecker';
+import ScreenNavigator from './screens/ScreenNavigator';
+import {applicationLightTheme} from './styles/theme';
 
 const isHermes = () => !!global.HermesInternal;
 const isV8 = () => !!global._v8runtime;
@@ -24,17 +24,13 @@ const isV8 = () => !!global._v8runtime;
  * */
 const Application: () => Node = () => {
 	useInit(onInit);
+	const applicationName = getApplicationName();
+	const checkUpdate = useUpdateChecker();
 	const colorScheme = useColorScheme();
 	const logger = useLogger(Application);
 	// TODO: Fix dark mode
 	// const [theme, setTheme] = useState(colorScheme === 'dark' ? applicationDarkTheme : applicationLightTheme);
 	const [theme, setTheme] = useState(applicationLightTheme);
-
-	useEffect(() => {
-		// setTheme(colorScheme === 'dark' ? applicationDarkTheme : applicationLightTheme);
-		setTheme(applicationLightTheme);
-		logger.info(`Color scheme changed to "${colorScheme}"`);
-	}, [colorScheme]);
 
 	async function onInit() {
 		let engine = 'JavaScriptCore';
@@ -44,8 +40,17 @@ const Application: () => Node = () => {
 			engine = 'V8';
 		}
 		const deviceName = await getDeviceName();
-		logger.info(`${appName} is running on ${deviceName} using ${engine} engine`);
+		logger.info(`${applicationName} is running on ${deviceName} using ${engine} engine`);
+		await checkUpdate();
 	}
+
+	function onColorSchemeChanged() {
+		// setTheme(colorScheme === 'dark' ? applicationDarkTheme : applicationLightTheme);
+		setTheme(applicationLightTheme);
+		logger.info(`Color scheme changed to "${colorScheme}"`);
+	}
+
+	useEffect(onColorSchemeChanged, [colorScheme]);
 
 	return (
 		<SafeAreaProvider>

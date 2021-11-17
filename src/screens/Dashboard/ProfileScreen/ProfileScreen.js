@@ -1,11 +1,13 @@
 import React, {FC, useCallback, useEffect, useState} from 'react';
 import {Alert, GestureResponderEvent, RefreshControl, SafeAreaView, ScrollView, View} from 'react-native';
+import {getApplicationName, getBuildNumber, getVersion} from 'react-native-device-info';
 import {Button, Card, Text} from '@ui-kitten/components';
 import FastImage from 'react-native-fast-image';
 import {API_BASE_URL} from '@env';
 import ErrorCode from '../../../core/enums/ErrorCode';
-import {createCardHeader} from '../../../libs/common/CardHeader';
-import {getHumanizedDate, getRoleString} from '../../../libs/common/Helpers';
+import {createCardHeader} from '../../../libs/components/CardHeader';
+import {getHumanizedDate} from '../../../libs/common/DateHelper';
+import {getRoleString} from '../../../libs/common/RoleHelper';
 import useAuthentication from '../../../libs/hooks/AuthenticationHook';
 import useInit from '../../../libs/hooks/InitHook';
 import useLogger from '../../../libs/hooks/LoggerHook';
@@ -13,6 +15,9 @@ import ProfileScreenStyle from './ProfileScreen.style';
 
 const ProfileScreen: FC = () => {
 	useInit(onInit);
+	const applicationName = getApplicationName();
+	const buildNumber = getBuildNumber();
+	const version = getVersion();
 	const {user, handleError, handleErrors, signOut: doSignOut, updateUserData} = useAuthentication();
 	const logger = useLogger(ProfileScreen);
 	const [joinedOn, setJoinedOn] = useState('');
@@ -135,6 +140,11 @@ const ProfileScreen: FC = () => {
 					<Button style={ProfileScreenStyle.signOutButton} status="danger" onPress={onSignOutPressed}>
 						SIGN OUT
 					</Button>
+				</View>
+				<View style={ProfileScreenStyle.aboutView}>
+					<Text style={ProfileScreenStyle.versionText}>
+						{applicationName} v{version} ({buildNumber})
+					</Text>
 				</View>
 			</ScrollView>
 		</SafeAreaView>

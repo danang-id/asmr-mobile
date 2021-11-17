@@ -3,7 +3,7 @@
  */
 
 import {AppRegistry} from 'react-native';
+import {getApplicationName} from 'react-native-device-info';
 import Application from './src/Application';
-import {name as appName} from './app.json';
 
-AppRegistry.registerComponent(appName, () => Application);
+AppRegistry.registerComponent(getApplicationName(), () => Application);

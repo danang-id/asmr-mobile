@@ -14,7 +14,7 @@ import AuthenticationContext from './AuthenticationContext';
 const AuthenticationProvider: FC = ({children}) => {
 	useInit(onInit);
 	const logger = useLogger(AuthenticationProvider);
-	const services = useServices();
+	const {abort, handleError, handleErrors, gate: gateService} = useServices();
 	const [user, setUser]: PersistedStateResult<User> = usePersistedState('AUTHENTICATED_USER');
 	const previousUser = usePrevious(user);
 
@@ -79,39 +79,39 @@ const AuthenticationProvider: FC = ({children}) => {
 	}
 
 	async function signIn(username?: string, password?: string): Promise<AuthenticationResponseModel> {
-		const response = await services.gate.authenticate({username, password, rememberMe: true});
-		if (response.isSuccess && response.data) {
-			setUser(parseUserData(response.data));
+		const result = await gateService.authenticate({username, password, rememberMe: true});
+		if (result.isSuccess && result.data) {
+			setUser(parseUserData(result.data));
 			// await FileCaching.fetchToCache(response.data.image);
 		}
 
-		return response;
+		return result;
 	}
 
 	async function signOut(): Promise<AuthenticationResponseModel> {
-		const response = await services.gate.clearSession();
-		if (response.isSuccess) {
+		const result = await gateService.clearSession();
+		if (result.isSuccess) {
 			// await FileCaching.removeCache(user.image);
 			setUser(undefined);
 		}
-		return response;
+		return result;
 	}
 
 	async function updateUserData(): Promise<AuthenticationResponseModel> {
 		try {
-			const response = await services.gate.getUserPassport();
-			if (response.isSuccess && response.data) {
-				setUser(parseUserData(response.data));
+			const result = await gateService.getUserPassport();
+			if (result.isSuccess && result.data) {
+				setUser(parseUserData(result.data));
 			}
 
-			if (response.errors && Array.isArray(response.errors)) {
-				const unauthenticatedError = response.errors.find(error => error.code === ErrorCode.NotAuthenticated);
+			if (result.errors && Array.isArray(result.errors)) {
+				const unauthenticatedError = result.errors.find(error => error.code === ErrorCode.NotAuthenticated);
 				if (!unauthenticatedError) {
-					services.handleErrors(response.errors, logger);
+					handleErrors(result.errors, logger);
 				}
 			}
 		} catch (error) {
-			services.handleError(error, logger);
+			handleError(error, logger);
 		}
 	}
 
@@ -121,9 +121,9 @@ const AuthenticationProvider: FC = ({children}) => {
 		<AuthenticationContext.Provider
 			value={{
 				user: user,
-				abort: services.abort,
-				handleError: services.handleError,
-				handleErrors: services.handleErrors,
+				abort: abort,
+				handleError: handleError,
+				handleErrors: handleErrors,
 				isAuthenticated: isAuthenticated,
 				isAuthorized: isAuthorized,
 				signIn: signIn,

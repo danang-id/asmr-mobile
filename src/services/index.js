@@ -8,15 +8,17 @@ import BeanService from './BeanService';
 import GateService from './GateService';
 import IncomingGreenBeanService from './IncomingGreenBeanService';
 import ProductionService from './ProductionService';
+import ReleaseService from './ReleaseService';
 
 export type Services = {
 	abort: () => void,
-	handleError: (error?: Error, logger?: ILogger) => void,
-	handleErrors: (errors?: ErrorInformation[], logger?: ILogger) => void,
+	handleError: (error?: Error, logger?: ILogger, options?: ServiceErrorHandlerOptions) => void,
+	handleErrors: (errors?: ErrorInformation[], logger?: ILogger, options?: ServiceErrorsHandlerOptions) => void,
 	bean: BeanService,
 	gate: GateService,
 	incomingGreenBean: IncomingGreenBeanService,
 	production: ProductionService,
+	release: ReleaseService,
 };
 
 export type ServiceErrorHandlerOptions = {
@@ -104,6 +106,7 @@ function createServices(setProgress: SetProgressInfo): Services {
 		gate: new GateService(cancelTokenSource, setProgress),
 		incomingGreenBean: new IncomingGreenBeanService(cancelTokenSource, setProgress),
 		production: new ProductionService(cancelTokenSource, setProgress),
+		release: new ReleaseService(cancelTokenSource, setProgress),
 	};
 }
 
