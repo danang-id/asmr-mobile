@@ -1,7 +1,9 @@
-import {getDeviceName} from 'react-native-device-info';
 import {Platform} from 'react-native';
+import {getDeviceName} from 'react-native-device-info';
+import {FileLogger as FileLogging} from 'react-native-file-logger';
 
 type WriterFunction = (...args: any[]) => void;
+type FileWriterFunction = (message: string) => void;
 export interface ILogger {
 	error(...args: any[]): void;
 	info(...args: any[]): void;
@@ -13,7 +15,7 @@ export interface ILoggerWithTag {
 	warn(tag: string, ...args: any[]): void;
 }
 
-export const Logger: ILoggerWithTag = (function () {
+export const ConsoleLogger: ILoggerWithTag = (function () {
 	let deviceName;
 	getDeviceName().then(name => (deviceName = name));
 
@@ -38,12 +40,25 @@ export const Logger: ILoggerWithTag = (function () {
 	return logger;
 })();
 
-export const NoLogger: ILoggerWithTag = (function () {
-	return {
-		error(tag, ...args) {},
-		info(tag, ...args) {},
-		warn(tag, ...args) {},
+export const FileLogger: ILoggerWithTag = (function () {
+	function write(writer: FileWriterFunction, tag: string, ...args: string[]) {
+		const now = new Date();
+		const message = `${now.toISOString()} [${tag}] ${args.join(' ')}`;
+		writer(message);
+	}
+
+	const logger: ILoggerWithTag = {
+		error(tag, ...args) {
+			write(FileLogging.error, tag, ...args);
+		},
+		info(tag, ...args) {
+			write(FileLogging.info, tag, ...args);
+		},
+		warn(tag, ...args) {
+			write(FileLogging.warn, tag, ...args);
+		},
 	};
+	return logger;
 })();
 
-export default Logger;
+export default process.env.NODE_ENV === 'production' ? FileLogger : ConsoleLogger;
