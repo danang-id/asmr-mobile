@@ -25,7 +25,7 @@
 		"react": "17.0.2",
 		"react-native": "0.66.3",
 		"react-native-camera": "4.2.1",
-		"react-native-device-info": "8.4.7",
+		"react-native-device-info": "8.4.8",
 		"react-native-dotenv": "3.3.0",
 		"react-native-encrypted-storage": "4.0.2",
 		"react-native-fast-image": "8.5.11",
@@ -33,12 +33,12 @@
 		"react-native-file-logger": "0.2.1",
 		"react-native-loading-spinner-overlay": "2.0.0",
 		"react-native-permissions": "3.1.0",
-		"react-native-qrcode-scanner": "1.5.4",
+		"react-native-qrcode-scanner": "1.6.0",
 		"react-native-safe-area-context": "3.3.2",
 		"react-native-screens": "3.9.0",
 		"react-native-shake": "5.1.0",
 		"react-native-splash-screen": "3.2.0",
-		"react-native-svg": "12.1.1",
+		"react-native-svg": "12.2.0",
 		"react-native-v8": "0.66.3-patch.1",
 		"react-native-vector-icons": "9.0.0",
 		"v8-android-jit-nointl": "9.93.0"
@@ -55,5 +55,6 @@
 	},
 	"jest": {
 		"preset": "react-native"
-	}
+	},
+	"packageManager": "yarn@3.1.0"
 }
