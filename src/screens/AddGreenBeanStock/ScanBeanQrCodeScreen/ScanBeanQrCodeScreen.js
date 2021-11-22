@@ -1,5 +1,4 @@
 // noinspection DuplicatedCode
-
 import React, {FC, useEffect, useRef, useState} from 'react';
 import {Alert, FlatList, Platform, View} from 'react-native';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
@@ -13,9 +12,9 @@ import AppTitleImage from '../../../components/AppTitleImage';
 import useInit from '../../../libs/hooks/InitHook';
 import useLogger from '../../../libs/hooks/LoggerHook';
 import useServices from '../../../libs/hooks/ServiceHook';
-import RoastGreenBeanRoutes from '../RoastGreenBeanRoutes';
+import IncomingGreenBeanRoutes from '../AddGreenBeanStockRoutes';
 
-import ScanGreenBeanScreenStyle from './ScanGreenBeanScreen.style';
+import ScanBeanQrCodeScreenStyle from './ScanBeanQrCodeScreen.style';
 
 const beanPublicationUrl = API_BASE_URL + '/pub/bean/';
 const permissionSteps = {
@@ -45,11 +44,11 @@ const permissionSteps = {
 	],
 };
 
-type ScanGreenBeanScreenProps = NativeStackScreenProps<{}, RoastGreenBeanRoutes.ScanGreenBean>;
+type ScanIncomingGreenBeanScreenProps = NativeStackScreenProps<{}, IncomingGreenBeanRoutes.ScanGreenBeanQrCode>;
 
-const ScanGreenBeanScreen: FC<ScanGreenBeanScreenProps> = ({navigation}) => {
+const ScanBeanQrCodeScreen: FC<ScanIncomingGreenBeanScreenProps> = ({navigation}) => {
 	useInit(onInit);
-	const logger = useLogger(ScanGreenBeanScreen);
+	const logger = useLogger(ScanBeanQrCodeScreen);
 	const {handleError, handleErrors, bean: beanService} = useServices();
 
 	const [bean, setBean] = useState();
@@ -103,7 +102,7 @@ const ScanGreenBeanScreen: FC<ScanGreenBeanScreenProps> = ({navigation}) => {
 			return;
 		}
 
-		navigation.navigate(RoastGreenBeanRoutes.BeanInformation, {bean});
+		navigation.navigate(IncomingGreenBeanRoutes.ConfirmBeanWeightScreen, {bean});
 	}
 
 	async function getBean() {
@@ -155,23 +154,23 @@ const ScanGreenBeanScreen: FC<ScanGreenBeanScreenProps> = ({navigation}) => {
 	useEffect(onBeanChanged, [bean]);
 
 	const TopContent: FC = () => (
-		<View style={ScanGreenBeanScreenStyle.topContent}>
+		<View style={ScanBeanQrCodeScreenStyle.topContent}>
 			{cameraUseAllowed && (
-				<Text category="h6" style={ScanGreenBeanScreenStyle.topContentText}>
-					Please scan the QR Code of the green bean that you will roast.
+				<Text category="h6" style={ScanBeanQrCodeScreenStyle.topContentText}>
+					Please scan the QR Code of the bean you want to add to the inventory.
 				</Text>
 			)}
 		</View>
 	);
 
 	const BottomContent: FC = () => (
-		<View style={ScanGreenBeanScreenStyle.bottomContent}>
-			<AppTitleImage style={ScanGreenBeanScreenStyle.appTitleImage} />
+		<View style={ScanBeanQrCodeScreenStyle.bottomContent}>
+			<AppTitleImage style={ScanBeanQrCodeScreenStyle.appTitleImage} />
 		</View>
 	);
 
 	const InstructionItem: FC = ({step, text}) => (
-		<Text style={ScanGreenBeanScreenStyle.permissionStepText}>
+		<Text style={ScanBeanQrCodeScreenStyle.permissionStepText}>
 			{step}. {text}
 		</Text>
 	);
@@ -193,18 +192,18 @@ const ScanGreenBeanScreen: FC<ScanGreenBeanScreenProps> = ({navigation}) => {
 		}
 
 		return (
-			<View style={ScanGreenBeanScreenStyle.notAuthorizedView}>
-				<Text style={ScanGreenBeanScreenStyle.notAuthorizedText} category="h6" status="danger">
+			<View style={ScanBeanQrCodeScreenStyle.notAuthorizedView}>
+				<Text style={ScanBeanQrCodeScreenStyle.notAuthorizedText} category="h6" status="danger">
 					asmr is not allowed to use the camera
 				</Text>
-				<Text style={ScanGreenBeanScreenStyle.cameraRequirementText}>
+				<Text style={ScanBeanQrCodeScreenStyle.cameraRequirementText}>
 					Camera is needed to scan the QR code of the incoming green bean.
 				</Text>
-				<Text style={ScanGreenBeanScreenStyle.permissionInstructionText} category="s1">
+				<Text style={ScanBeanQrCodeScreenStyle.permissionInstructionText} category="s1">
 					Please follow this instruction:
 				</Text>
 				<FlatList
-					contentContainerStyle={ScanGreenBeanScreenStyle.permissionStepList}
+					contentContainerStyle={ScanBeanQrCodeScreenStyle.permissionStepList}
 					data={steps}
 					renderItem={renderInstructionItem}
 					keyExtractor={item => item.step}
@@ -223,8 +222,8 @@ const ScanGreenBeanScreen: FC<ScanGreenBeanScreenProps> = ({navigation}) => {
 			bottomContent={<BottomContent />}
 			notAuthorizedView={<NotAuthorizedView />}
 			cameraType="back"
-			cameraStyle={ScanGreenBeanScreenStyle.camera}
-			containerStyle={ScanGreenBeanScreenStyle.container}
+			cameraStyle={ScanBeanQrCodeScreenStyle.camera}
+			containerStyle={ScanBeanQrCodeScreenStyle.container}
 			flashMode={RNCamera.Constants.FlashMode.auto}
 			checkAndroid6Permissions
 			permissionDialogTitle="Permission Needed"
@@ -237,4 +236,4 @@ const ScanGreenBeanScreen: FC<ScanGreenBeanScreenProps> = ({navigation}) => {
 	);
 };
 
-export default ScanGreenBeanScreen;
+export default ScanBeanQrCodeScreen;

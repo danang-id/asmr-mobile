@@ -1,4 +1,4 @@
 export default {
-	ScanGreenBean: 'ScanGreenBean',
-	BeanInformation: 'BeanInformation',
+	ScanGreenBeanQrCode: 'ScanGreenBeanQrCode',
+	ConfirmGreenBeanWeight: 'ConfirmGreenBeanWeight',
 };

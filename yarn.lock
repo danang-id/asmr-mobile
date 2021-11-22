@@ -1435,7 +1435,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@react-native-async-storage/async-storage@npm:1.15.11":
+"@react-native-async-storage/async-storage@npm:1.15.11, @react-native-async-storage/async-storage@npm:^1.13.4":
   version: 1.15.11
   resolution: "@react-native-async-storage/async-storage@npm:1.15.11"
   dependencies:
@@ -1443,18 +1443,6 @@ __metadata:
   peerDependencies:
     react-native: ^0.0.0-0 || ^0.60.6 || ^0.61.5 || ^0.62.2 || ^0.63.2 || ^0.64.0 || ^0.65.0 || ^0.66.0 || 1000.0.0
   checksum: 5fca2395ceede9f8537552f3f4c5b933ae4040312e25d20c5a2a66cb357917ea40c7f87110aea28911ba67f1309df0f8cefaee5d0c0ab3e6b0f663d53192d1d5
-  languageName: node
-  linkType: hard
-
-"@react-native-community/async-storage@npm:^1.6.1":
-  version: 1.12.1
-  resolution: "@react-native-community/async-storage@npm:1.12.1"
-  dependencies:
-    deep-assign: ^3.0.0
-  peerDependencies:
-    react: ^16.8
-    react-native: ">=0.59"
-  checksum: 68b519eb9fc50899257878440fd49a500d4b35c3899311c56c672e779df6516f0760204f6c8edcb3e83398c61a775822996aac6974be4b55a04ad30448d8662d
   languageName: node
   linkType: hard
 
@@ -2443,7 +2431,7 @@ __metadata:
     react-native-file-logger: 0.2.1
     react-native-loading-spinner-overlay: 2.0.0
     react-native-permissions: 3.1.0
-    react-native-qrcode-scanner: 1.6.0
+    react-native-qrcode-scanner: 1.5.4
     react-native-safe-area-context: 3.3.2
     react-native-screens: 3.9.0
     react-native-shake: 5.1.0
@@ -3490,15 +3478,6 @@ __metadata:
   version: 0.7.0
   resolution: "dedent@npm:0.7.0"
   checksum: 87de191050d9a40dd70cad01159a0bcf05ecb59750951242070b6abf9569088684880d00ba92a955b4058804f16eeaf91d604f283929b4f614d181cd7ae633d2
-  languageName: node
-  linkType: hard
-
-"deep-assign@npm:^3.0.0":
-  version: 3.0.0
-  resolution: "deep-assign@npm:3.0.0"
-  dependencies:
-    is-obj: ^1.0.0
-  checksum: 9041ccc72ae1980f014d4b745d6135d8f0e71d60ac433397550789c27e6b4d14bc0de2af69777e09f97e1d0da3007a8d78de36f7bf9df931c9968b68fc9546ab
   languageName: node
   linkType: hard
 
@@ -5311,13 +5290,6 @@ __metadata:
   version: 7.0.0
   resolution: "is-number@npm:7.0.0"
   checksum: 456ac6f8e0f3111ed34668a624e45315201dff921e5ac181f8ec24923b99e9f32ca1a194912dc79d539c97d33dba17dc635202ff0b2cf98326f608323276d27a
-  languageName: node
-  linkType: hard
-
-"is-obj@npm:^1.0.0":
-  version: 1.0.1
-  resolution: "is-obj@npm:1.0.1"
-  checksum: 3ccf0efdea12951e0b9c784e2b00e77e87b2f8bd30b42a498548a8afcc11b3287342a2030c308e473e93a7a19c9ea7854c99a8832a476591c727df2a9c79796c
   languageName: node
   linkType: hard
 
@@ -8140,16 +8112,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-qrcode-scanner@npm:1.6.0":
-  version: 1.6.0
-  resolution: "react-native-qrcode-scanner@npm:1.6.0"
+"react-native-qrcode-scanner@npm:1.5.4":
+  version: 1.5.4
+  resolution: "react-native-qrcode-scanner@npm:1.5.4"
   dependencies:
-    "@react-native-community/async-storage": ^1.6.1
+    "@react-native-async-storage/async-storage": ^1.13.4
     prop-types: ^15.5.10
     react-native-permissions: ^2.0.2
   peerDependencies:
     react-native-camera: ">=1.0.2"
-  checksum: 89fdd8132fa0944949f54d902c7245da96cd488536eae0b2f9923d518a822a4dec606f22001871344b6438149f446639b952fe2be281965d1be91b9af1a47bed
+  checksum: e5a6540f0df4de0849d8dac6f8bcf47780008641ff900dc9b596ee1b9e274b2fb6c00474bb6ec62dc29c9e19e8b31a2110fb3c0488c6931a03c82c231c170a42
   languageName: node
   linkType: hard
 

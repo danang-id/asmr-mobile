@@ -1,6 +1,6 @@
 import {StyleSheet} from 'react-native';
 
-const ScanGreenBeanScreenStyle = StyleSheet.create({
+const ScanBeanQrCodeScreenStyle = StyleSheet.create({
 	camera: {
 		overflow: 'hidden',
 	},
@@ -47,4 +47,4 @@ const ScanGreenBeanScreenStyle = StyleSheet.create({
 	},
 });
 
-export default ScanGreenBeanScreenStyle;
+export default ScanBeanQrCodeScreenStyle;

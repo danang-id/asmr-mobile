@@ -1,8 +1,9 @@
 import React, {FC} from 'react';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import ProgressView from '../../components/ProgressView';
-import ScanIncomingGreenBeanScreen from './ScanIncomingGreenBeanScreen';
-import BeanInformationScreen from './BeanInformationScreen';
+import ScanBeanQrCodeScreen from './ScanBeanQrCodeScreen';
+import ConfirmBeanWeightScreen from './ConfirmBeanWeightScreen';
+import AddResultScreen from './AddResultScreen';
 import AddGreenBeanStockRoutes from './AddGreenBeanStockRoutes';
 
 const Stack = createNativeStackNavigator();
@@ -11,15 +12,12 @@ const AddGreenBeanStockNavigator: FC = () => {
 	return (
 		<ProgressView>
 			<Stack.Navigator
-				initialRouteName={AddGreenBeanStockRoutes.ScanIncomingGreenBean}
+				initialRouteName={AddGreenBeanStockRoutes.ScanGreenBeanQrCode}
 				screenOptions={{headerShown: true, headerTitle: 'Add Green Bean Stock'}}>
+				<Stack.Screen name={AddGreenBeanStockRoutes.ScanGreenBeanQrCode} component={ScanBeanQrCodeScreen} />
 				<Stack.Screen
-					name={AddGreenBeanStockRoutes.ScanIncomingGreenBean}
-					component={ScanIncomingGreenBeanScreen}
-				/>
-				<Stack.Screen
-					name={AddGreenBeanStockRoutes.BeanInformation}
-					component={BeanInformationScreen}
+					name={AddGreenBeanStockRoutes.ConfirmBeanWeightScreen}
+					component={ConfirmBeanWeightScreen}
 					initialParams={{bean: null}}
 				/>
 			</Stack.Navigator>

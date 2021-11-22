@@ -1,5 +1,5 @@
 import React, {FC, useCallback, useEffect, useState} from 'react';
-import {Alert, GestureResponderEvent, RefreshControl, SafeAreaView, ScrollView, View} from 'react-native';
+import {Alert, RefreshControl, SafeAreaView, ScrollView, View} from 'react-native';
 import {getApplicationName, getBuildNumber, getVersion} from 'react-native-device-info';
 import {Button, Card, Text} from '@ui-kitten/components';
 import FastImage from 'react-native-fast-image';
@@ -52,8 +52,7 @@ const ProfileScreen: FC = () => {
 		});
 	}, []);
 
-	function onSignOutPressed(event: GestureResponderEvent) {
-		event.preventDefault();
+	function onSignOutPressed() {
 		Alert.alert('Sign Out', 'Are you sure you really want to sign out?', [
 			{
 				text: 'Cancel',

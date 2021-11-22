@@ -1,9 +1,9 @@
 import React, {FC} from 'react';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import ProgressView from '../../components/ProgressView';
-import ScanGreenBeanScreen from './ScanGreenBeanScreen';
+import ScanGreenBeanQrCodeScreen from './ScanGreenBeanQrCodeScreen';
 import RoastGreenBeanRoutes from './RoastGreenBeanRoutes';
-import BeanInformationScreen from './BeanInformationScreen';
+import ConfirmGreenBeanWeight from './ConfirmGreenBeanWeight';
 
 const Stack = createNativeStackNavigator();
 
@@ -11,12 +11,12 @@ const RoastGreenBeanNavigator: FC = () => {
 	return (
 		<ProgressView>
 			<Stack.Navigator
-				initialRouteName={RoastGreenBeanRoutes.ScanGreenBean}
+				initialRouteName={RoastGreenBeanRoutes.ScanGreenBeanQrCode}
 				screenOptions={{headerShown: true, headerTitle: 'Roast Green Bean'}}>
-				<Stack.Screen name={RoastGreenBeanRoutes.ScanGreenBean} component={ScanGreenBeanScreen} />
+				<Stack.Screen name={RoastGreenBeanRoutes.ScanGreenBeanQrCode} component={ScanGreenBeanQrCodeScreen} />
 				<Stack.Screen
-					name={RoastGreenBeanRoutes.BeanInformation}
-					component={BeanInformationScreen}
+					name={RoastGreenBeanRoutes.ConfirmGreenBeanWeight}
+					component={ConfirmGreenBeanWeight}
 					initialParams={{bean: null}}
 				/>
 			</Stack.Navigator>
