@@ -1,9 +1,11 @@
 import React, {FC, useCallback, useEffect, useState} from 'react';
 import {Alert, RefreshControl, SafeAreaView, ScrollView, View} from 'react-native';
-import {getApplicationName, getBuildNumber, getVersion} from 'react-native-device-info';
 import {Button, Card, Text} from '@ui-kitten/components';
 import FastImage from 'react-native-fast-image';
-import {API_BASE_URL} from '@env';
+import Gleap from 'react-native-gleapsdk';
+import {FileSystem} from 'react-native-file-access';
+import {FileLogger as FileLogging} from 'react-native-file-logger';
+import {API_BASE_URL, GLEAP_TOKEN} from '@env';
 import ErrorCode from '../../../core/enums/ErrorCode';
 import {createCardHeader} from '../../../libs/components/CardHeader';
 import {getHumanizedDate} from '../../../libs/common/DateHelper';
@@ -15,10 +17,7 @@ import ProfileScreenStyle from './ProfileScreen.style';
 
 const ProfileScreen: FC = () => {
 	useInit(onInit);
-	const applicationName = getApplicationName();
-	const buildNumber = getBuildNumber();
-	const version = getVersion();
-	const {user, handleError, handleErrors, signOut: doSignOut, updateUserData} = useAuthentication();
+	const {user, handleError, handleErrors, signOut: doSignOut, refresh: refreshAuthentication} = useAuthentication();
 	const logger = useLogger(ProfileScreen);
 	const [joinedOn, setJoinedOn] = useState('');
 	const [refreshing, setRefreshing] = useState(false);
@@ -27,7 +26,7 @@ const ProfileScreen: FC = () => {
 
 	async function onInit() {
 		onUserDataUpdate();
-		await updateUserData();
+		await refreshAuthentication();
 	}
 
 	function onUserDataUpdate() {
@@ -47,12 +46,24 @@ const ProfileScreen: FC = () => {
 
 	const onRefresh = useCallback(() => {
 		setRefreshing(true);
-		updateUserData().finally(() => {
+		refreshAuthentication().finally(() => {
 			setRefreshing(false);
 		});
 	}, []);
 
-	function onSignOutPressed() {
+	function onShareFeedbackButtonPressed() {
+		if (!GLEAP_TOKEN) {
+			Alert.alert(
+				'Feedback Center Unavailable',
+				'Unfortunately, feedback center is not available in this version of the application.',
+			);
+			return;
+		}
+
+		openFeedbackCenter().catch();
+	}
+
+	function onSignOutButtonPressed() {
 		Alert.alert('Sign Out', 'Are you sure you really want to sign out?', [
 			{
 				text: 'Cancel',
@@ -61,7 +72,7 @@ const ProfileScreen: FC = () => {
 				text: 'Sign Out',
 				style: 'destructive',
 				onPress: () => {
-					signOut().then().catch();
+					signOut().catch();
 				},
 			},
 		]);
@@ -69,6 +80,37 @@ const ProfileScreen: FC = () => {
 
 	function onSignOutFailed(message: string) {
 		Alert.alert('Sign Out Failed', message, [{text: 'Try Again'}]);
+	}
+
+	async function openFeedbackCenter() {
+		try {
+			const logFiles: {name: string, content: string}[] = [];
+
+			const paths = await FileLogging.getLogFilePaths();
+			if (!paths || !Array.isArray(paths)) {
+				return;
+			}
+
+			for (const path of paths) {
+				if (logFiles.length >= 6) {
+					continue;
+				}
+
+				const pathArray = path.split('/');
+				const name = pathArray[pathArray.length - 1];
+				const content = await FileSystem.readFile(path, 'base64');
+				logFiles.push({name, content});
+			}
+
+			Gleap.removeAllAttachments();
+			for (const logFile of logFiles) {
+				Gleap.addAttachment(logFile.content, logFile.name);
+			}
+		} catch (error) {
+			logger.error(error);
+		} finally {
+			Gleap.open();
+		}
 	}
 
 	async function signOut() {
@@ -136,14 +178,15 @@ const ProfileScreen: FC = () => {
 					)}
 				</Card>
 				<View style={ProfileScreenStyle.actionView}>
-					<Button style={ProfileScreenStyle.signOutButton} status="danger" onPress={onSignOutPressed}>
+					<Button
+						style={ProfileScreenStyle.shareFeedbackButton}
+						appearance="outline"
+						onPress={onShareFeedbackButtonPressed}>
+						Share Feedback
+					</Button>
+					<Button style={ProfileScreenStyle.signOutButton} status="danger" onPress={onSignOutButtonPressed}>
 						SIGN OUT
 					</Button>
-				</View>
-				<View style={ProfileScreenStyle.aboutView}>
-					<Text style={ProfileScreenStyle.versionText}>
-						{applicationName} v{version} ({buildNumber})
-					</Text>
 				</View>
 			</ScrollView>
 		</SafeAreaView>

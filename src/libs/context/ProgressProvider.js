@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {FC, useEffect, useState} from 'react';
 import ProgressContext from './ProgressContext';
 import useLogger from '../hooks/LoggerHook';
 import usePrevious from '../hooks/PreviousHook';
@@ -9,7 +9,7 @@ const ProgressLogConfig = {
 	logPercentage: false,
 };
 
-function ProgressProvider({children}): JSX.Element {
+const ProgressProvider: FC = ({children}) => {
 	const logger = useLogger(ProgressProvider);
 	const [progressInfo, setProgressInfo] = useState({loading: false, percentage: 0});
 	const prevProgressInfo = usePrevious(progressInfo);
@@ -45,6 +45,6 @@ function ProgressProvider({children}): JSX.Element {
 	useEffect(onProgressInfoChanged, [progressInfo]);
 
 	return <ProgressContext.Provider value={[progressInfo, setProgress]}>{children}</ProgressContext.Provider>;
-}
+};
 
 export default ProgressProvider;

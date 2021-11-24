@@ -3,14 +3,16 @@
 	"version": "0.1.0",
 	"private": true,
 	"scripts": {
+		"clean": "react-native-clean-project",
+		"doctor": "react-native doctor",
+		"pod:install": "pod-install",
 		"android": "react-native run-android",
 		"ios": "react-native run-ios",
-		"log-android": "react-native log-android",
-		"log-ios": "react-native log-ios",
+		"log:android": "react-native log-android",
+		"log:ios": "react-native log-ios",
 		"start": "react-native start",
-		"test": "jest",
-		"doctor": "react-native doctor",
-		"lint": "eslint ."
+		"lint": "eslint .",
+		"test": "jest"
 	},
 	"dependencies": {
 		"@eva-design/eva": "2.1.1",
@@ -22,6 +24,7 @@
 		"@ui-kitten/metro-config": "5.1.1",
 		"axios": "0.24.0",
 		"compare-versions": "4.1.1",
+		"flow-bin": "0.165.1",
 		"react": "17.0.2",
 		"react-native": "0.66.3",
 		"react-native-camera": "4.2.1",
@@ -31,12 +34,12 @@
 		"react-native-fast-image": "8.5.11",
 		"react-native-file-access": "2.0.0",
 		"react-native-file-logger": "0.2.1",
+		"react-native-gleapsdk": "6.2.0",
 		"react-native-loading-spinner-overlay": "2.0.0",
 		"react-native-permissions": "3.1.0",
 		"react-native-qrcode-scanner": "1.5.4",
 		"react-native-safe-area-context": "3.3.2",
 		"react-native-screens": "3.9.0",
-		"react-native-shake": "5.1.0",
 		"react-native-splash-screen": "3.2.0",
 		"react-native-svg": "12.2.0",
 		"react-native-v8": "0.66.3-patch.1",
@@ -51,6 +54,8 @@
 		"eslint": "7.32.0",
 		"jest": "^27.3.1",
 		"metro-react-native-babel-preset": "^0.66.2",
+		"pod-install": "^0.1.28",
+		"react-native-clean-project": "^3.6.7",
 		"react-test-renderer": "17.0.2"
 	},
 	"jest": {

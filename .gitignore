@@ -67,3 +67,6 @@ buck-out/
 !.yarn/releases
 !.yarn/sdks
 !.yarn/versions
+
+# Environment Files
+.env.local

@@ -1,3 +1,3 @@
-import ConfirmGreenBeanWeight from './ConfirmGreenBeanWeight';
+import ConfirmGreenBeanWeightScreen from './ConfirmGreenBeanWeightScreen';
 
-export default ConfirmGreenBeanWeight;
+export default ConfirmGreenBeanWeightScreen;

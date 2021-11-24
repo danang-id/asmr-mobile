@@ -5,7 +5,7 @@ const MainScreenStyle = StyleSheet.create({
 		minHeight: '100%',
 	},
 	scrollView: {
-		marginHorizontal: 15,
+		paddingHorizontal: 15,
 	},
 	scrollViewContentContainer: {
 		flexDirection: 'column',
@@ -36,19 +36,48 @@ const MainScreenStyle = StyleSheet.create({
 		marginBottom: 10,
 	},
 	productionStatusText: {
-		fontSize: 16,
+		fontSize: 18,
 		fontWeight: '700',
 	},
 	productionFinishText: {
 		marginTop: 10,
 		fontSize: 16,
 	},
-	productionFinishButton: {
+	productionActionView: {
 		marginTop: 20,
+		flexDirection: 'row',
+		alignItems: 'center',
+		justifyContent: 'flex-end',
+	},
+	productionCancelButton: {
+		marginRight: 5,
+	},
+	productionFinishButton: {},
+
+	stockHistoryCard: {
+		marginBottom: 15,
+	},
+	stockText: {
+		marginVertical: 3,
+	},
+	moreStockText: {
+		marginTop: 15,
+		fontSize: 16,
+		fontWeight: '700',
+		textAlign: 'right',
 	},
 
-	productionHistoryCard: {
+	roastingHistoryCard: {
 		marginBottom: 15,
+	},
+	roastingText: {
+		marginVertical: 3,
+	},
+	moreRoastingText: {
+		marginTop: 15,
+		fontSize: 16,
+		fontWeight: '700',
+		textAlign: 'right',
 	},
 });
 

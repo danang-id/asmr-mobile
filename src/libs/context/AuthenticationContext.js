@@ -8,9 +8,9 @@ const AuthenticationContext: Context<AuthenticationContextInfo> = createContext(
 	handleErrors: () => {},
 	isAuthenticated: () => false,
 	isAuthorized: () => false,
+	refresh: () => Promise.resolve(),
 	signIn: () => Promise.resolve(),
 	signOut: () => Promise.resolve(),
-	updateUserData: () => Promise.resolve(),
 });
 
 export default AuthenticationContext;

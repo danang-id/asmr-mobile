@@ -14,12 +14,12 @@ const Stack = createNativeStackNavigator();
 
 const ScreenNavigator: FC = () => {
 	useInit(onInit);
-	const {user, isAuthenticated, isAuthorized, updateUserData} = useAuthentication();
+	const {user, isAuthenticated, isAuthorized, refresh: refreshAuthentication} = useAuthentication();
 
 	const [isRoaster, setIsRoaster] = useState(false);
 
 	async function onInit() {
-		await updateUserData();
+		await refreshAuthentication();
 		SplashScreen.hide();
 	}
 

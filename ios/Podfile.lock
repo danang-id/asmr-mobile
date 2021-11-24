@@ -13,6 +13,7 @@ PODS:
     - React-jsi (= 0.66.3)
     - ReactCommon/turbomodule/core (= 0.66.3)
   - fmt (6.2.1)
+  - Gleap (6.2.0)
   - glog (0.3.5)
   - libwebp (1.2.1):
     - libwebp/demux (= 1.2.1)
@@ -235,10 +236,11 @@ PODS:
     - React-Core
   - react-native-file-access (2.0.0):
     - React-Core
+  - react-native-gleapsdk (6.2.0):
+    - Gleap (= 6.2.0)
+    - React-Core
   - react-native-safe-area-context (3.3.2):
     - React-Core
-  - react-native-shake (5.1.0):
-    - React
   - react-native-splash-screen (3.2.0):
     - React
   - React-perflogger (0.66.3)
@@ -358,8 +360,8 @@ DEPENDENCIES:
   - react-native-camera (from `../node_modules/react-native-camera`)
   - react-native-encrypted-storage (from `../node_modules/react-native-encrypted-storage`)
   - react-native-file-access (from `../node_modules/react-native-file-access`)
+  - react-native-gleapsdk (from `../node_modules/react-native-gleapsdk`)
   - react-native-safe-area-context (from `../node_modules/react-native-safe-area-context`)
-  - react-native-shake (from `../node_modules/react-native-shake`)
   - react-native-splash-screen (from `../node_modules/react-native-splash-screen`)
   - React-perflogger (from `../node_modules/react-native/ReactCommon/reactperflogger`)
   - React-RCTActionSheet (from `../node_modules/react-native/Libraries/ActionSheetIOS`)
@@ -387,6 +389,7 @@ SPEC REPOS:
   trunk:
     - CocoaLumberjack
     - fmt
+    - Gleap
     - libwebp
     - SDWebImage
     - SDWebImageWebPCoder
@@ -434,10 +437,10 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-encrypted-storage"
   react-native-file-access:
     :path: "../node_modules/react-native-file-access"
+  react-native-gleapsdk:
+    :path: "../node_modules/react-native-gleapsdk"
   react-native-safe-area-context:
     :path: "../node_modules/react-native-safe-area-context"
-  react-native-shake:
-    :path: "../node_modules/react-native-shake"
   react-native-splash-screen:
     :path: "../node_modules/react-native-splash-screen"
   React-perflogger:
@@ -490,6 +493,7 @@ SPEC CHECKSUMS:
   FBLazyVector: de148e8310b8b878db304ceea2fec13f2c02e3a0
   FBReactNativeSpec: 6192956c9e346013d5f1809ba049af720b11c6a4
   fmt: ff9d55029c625d3757ed641535fd4a75fedc7ce9
+  Gleap: 95960837662603c514c00d5728a2907849993023
   glog: 5337263514dd6f09803962437687240c5dc39aa4
   libwebp: 98a37e597e40bfdb4c911fc98f2c53d0b12d05fc
   Permission-Camera: 0db4fd6e1c556c1cf47f38b989a8084cea3ec3dd
@@ -508,8 +512,8 @@ SPEC CHECKSUMS:
   react-native-camera: 3eae183c1d111103963f3dd913b65d01aef8110f
   react-native-encrypted-storage: e78d848ce0fb663c2ce306e37921d026809322e6
   react-native-file-access: c879d32fcf4c75e90475dcbd60fd0a4709513107
+  react-native-gleapsdk: c90cefb6ff5cd8de23b64c96e7f3930a1f1a45aa
   react-native-safe-area-context: 584dc04881deb49474363f3be89e4ca0e854c057
-  react-native-shake: 2c1eac54fac0f6a2795775f964d5ef9eccc7dea4
   react-native-splash-screen: 200d11d188e2e78cea3ad319964f6142b6384865
   React-perflogger: 73732888d37d4f5065198727b167846743232882
   React-RCTActionSheet: 96c6d774fa89b1f7c59fc460adc3245ba2d7fd79

@@ -1,7 +1,7 @@
 import {StyleSheet} from 'react-native';
 import applicationColors from '../../../styles/colors';
 
-const ConfirmBeanWeightScreenStyle = StyleSheet.create({
+const ConfirmGreenBeanWeightScreenStyle = StyleSheet.create({
 	container: {
 		minHeight: '100%',
 	},
@@ -28,7 +28,7 @@ const ConfirmBeanWeightScreenStyle = StyleSheet.create({
 	beanWeightInput: {
 		marginBottom: 10,
 	},
-	addToInventoryButton: {},
+	roastGreenBeanButton: {},
 
 	resultView: {
 		minHeight: '100%',
@@ -41,7 +41,7 @@ const ConfirmBeanWeightScreenStyle = StyleSheet.create({
 		height: 72,
 	},
 	resultIconSuccess: {
-		color: '#1F871F',
+		color: '#2067F7',
 	},
 	resultIconFailed: {
 		color: '#8C0E2D',
@@ -65,4 +65,4 @@ const ConfirmBeanWeightScreenStyle = StyleSheet.create({
 	},
 });
 
-export default ConfirmBeanWeightScreenStyle;
+export default ConfirmGreenBeanWeightScreenStyle;

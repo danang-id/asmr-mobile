@@ -31,7 +31,7 @@ function usePersistedState<T>(name: string, initialValue?: T): PersistedStateRes
 	}
 
 	function setState(value?: T) {
-		setPersistedState(value).then().catch(logger.error);
+		setPersistedState(value).catch(logger.error);
 	}
 
 	return [state, setState];

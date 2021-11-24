@@ -3,12 +3,13 @@ import React, {FC, useEffect, useRef, useState} from 'react';
 import {Alert, FlatList, Platform, View} from 'react-native';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {Button, Text} from '@ui-kitten/components';
-import {check as checkPermission, openSettings} from 'react-native-permissions';
+import {check as checkPermission, request as requestPermission, openSettings} from 'react-native-permissions';
 import QRCodeScanner from 'react-native-qrcode-scanner';
 import {BarCodeReadEvent, RNCamera} from 'react-native-camera';
-import {API_BASE_URL} from '@env';
+import Gleap from 'react-native-gleapsdk';
+import {API_BASE_URL, GLEAP_TOKEN} from '@env';
 import ErrorCode from '../../../core/enums/ErrorCode';
-import AppTitleImage from '../../../components/AppTitleImage';
+import ApplicationLogoImage from '../../../components/ApplicationLogoImage';
 import useInit from '../../../libs/hooks/InitHook';
 import useLogger from '../../../libs/hooks/LoggerHook';
 import useServices from '../../../libs/hooks/ServiceHook';
@@ -57,17 +58,26 @@ const ScanBeanQrCodeScreen: FC<ScanIncomingGreenBeanScreenProps> = ({navigation}
 	const scannerRef = useRef();
 
 	async function onInit() {
+		let permission = '';
 		if (Platform.OS === 'android') {
-			const permission = await checkPermission('android.permission.CAMERA');
-			logger.info('android.permission.CAMERA', permission);
-			setCameraUseAllowed(permission === 'granted');
+			permission = 'android.permission.CAMERA';
+		} else if (Platform.OS === 'ios') {
+			permission = 'ios.permission.CAMERA';
+		}
+
+		if (!permission) {
 			return;
 		}
 
-		if (Platform.OS === 'ios') {
-			const permission = await checkPermission('ios.permission.CAMERA');
-			logger.info('ios.permission.CAMERA', permission);
-			setCameraUseAllowed(permission === 'granted');
+		let status = await checkPermission();
+		if (status !== 'granted') {
+			status = await requestPermission(permission);
+		}
+
+		setCameraUseAllowed(status === 'granted');
+		logger.info(permission, status);
+		if (GLEAP_TOKEN) {
+			Gleap.logEvent('Camera permission request', {status});
 		}
 	}
 
@@ -94,7 +104,7 @@ const ScanBeanQrCodeScreen: FC<ScanIncomingGreenBeanScreenProps> = ({navigation}
 			return;
 		}
 
-		getBean().then();
+		getBean().catch();
 	}
 
 	function onBeanChanged() {
@@ -165,7 +175,7 @@ const ScanBeanQrCodeScreen: FC<ScanIncomingGreenBeanScreenProps> = ({navigation}
 
 	const BottomContent: FC = () => (
 		<View style={ScanBeanQrCodeScreenStyle.bottomContent}>
-			<AppTitleImage style={ScanBeanQrCodeScreenStyle.appTitleImage} />
+			<ApplicationLogoImage style={ScanBeanQrCodeScreenStyle.appTitleImage} />
 		</View>
 	);
 
@@ -188,7 +198,7 @@ const ScanBeanQrCodeScreen: FC<ScanIncomingGreenBeanScreenProps> = ({navigation}
 		}
 
 		function onAllowCameraUseButtonPressed() {
-			openSettings().then();
+			openSettings().catch();
 		}
 
 		return (

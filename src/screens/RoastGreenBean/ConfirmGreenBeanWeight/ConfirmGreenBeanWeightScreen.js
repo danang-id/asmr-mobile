@@ -7,23 +7,23 @@ import {API_BASE_URL} from '@env';
 import Bean from '../../../core/entities/Bean';
 import {formatUnitValue} from '../../../libs/common/UnitHelper';
 import {createCardHeader} from '../../../libs/components/CardHeader';
-import useInventory from '../../../libs/hooks/InventoryHook';
+import useProduction from '../../../libs/hooks/ProductionHook';
 import DashboardRoutes from '../../Dashboard/DashboardRoutes';
-import AddGreenBeanStockRoutes from '../AddGreenBeanStockRoutes';
+import RoastGreenBeanRoutes from '../RoastGreenBeanRoutes';
 
-import ConfirmBeanWeightScreenStyle from './ConfirmBeanWeightScreen.style';
+import ConfirmGreenBeanWeightScreenStyle from './ConfirmGreenBeanWeightScreen.style';
 
 export type BeanInformationScreenParams = {
 	bean: Bean | null,
 };
 type BeanInformationScreenProps = NativeStackScreenProps<
 	BeanInformationScreenParams,
-	AddGreenBeanStockRoutes.ConfirmBeanWeightScreen,
+	RoastGreenBeanRoutes.ConfirmGreenBeanWeight,
 >;
 
-const ConfirmBeanWeightScreen: FC<BeanInformationScreenProps> = ({navigation, route}) => {
+const ConfirmGreenBeanWeightScreen: FC<BeanInformationScreenProps> = ({navigation, route}) => {
 	const {bean} = route.params;
-	const {stock: stockBean} = useInventory();
+	const {start: startProduction} = useProduction();
 
 	const [confirmed, setConfirmed] = useState(false);
 	const [greenBeanWeight, setGreenBeanWeight] = useState(0);
@@ -52,9 +52,9 @@ const ConfirmBeanWeightScreen: FC<BeanInformationScreenProps> = ({navigation, ro
 		setGreenBeanWeight(isValueAllowed ? parsedValue : 0);
 	}
 
-	function onInputBeanToInventoryButtonPressed() {
+	function onRoastGreenBean() {
 		if (greenBeanWeight <= 0) {
-			Alert.alert(`Please specify how much you want to add ${bean.name} bean to inventory.`, undefined, [
+			Alert.alert(`Please specify how much ${bean.name} bean you want to roast.`, undefined, [
 				{
 					style: 'default',
 					text: 'Try Again',
@@ -64,10 +64,8 @@ const ConfirmBeanWeightScreen: FC<BeanInformationScreenProps> = ({navigation, ro
 		}
 
 		Alert.alert(
-			'Add Stock',
-			`Do you really want to add ${formatUnitValue(greenBeanWeight, 'gram')} of ${
-				bean.name
-			} bean to the inventory?`,
+			'Roast Green Bean',
+			`Do you really want to roast ${formatUnitValue(greenBeanWeight, 'gram')} of ${bean.name} bean?`,
 			[
 				{
 					style: 'destructive',
@@ -76,10 +74,10 @@ const ConfirmBeanWeightScreen: FC<BeanInformationScreenProps> = ({navigation, ro
 				{
 					text: 'Yes',
 					onPress: () => {
-						stockBean(bean.id, greenBeanWeight)
-							.then(incomingGreenBean => {
+						startProduction(bean.id, greenBeanWeight)
+							.then(roastedBeanProduction => {
 								setConfirmed(true);
-								setSucceed(!!incomingGreenBean);
+								setSucceed(!!roastedBeanProduction);
 							})
 							.catch(() => {
 								setConfirmed(true);
@@ -120,25 +118,26 @@ const ConfirmBeanWeightScreen: FC<BeanInformationScreenProps> = ({navigation, ro
 
 	if (confirmed) {
 		return (
-			<SafeAreaView style={ConfirmBeanWeightScreenStyle.container}>
-				<View style={ConfirmBeanWeightScreenStyle.resultView}>
+			<SafeAreaView style={ConfirmGreenBeanWeightScreenStyle.container}>
+				<View style={ConfirmGreenBeanWeightScreenStyle.resultView}>
 					{succeed ? (
 						<Icon
 							ref={successIconRef}
 							style={{
-								...ConfirmBeanWeightScreenStyle.resultIcon,
-								...ConfirmBeanWeightScreenStyle.resultIconSuccess,
+								...ConfirmGreenBeanWeightScreenStyle.resultIcon,
+								...ConfirmGreenBeanWeightScreenStyle.resultIconSuccess,
 							}}
-							name="checkmark-circle-outline"
+							name="sync-outline"
 							pack="ion"
 							animation="pulse"
+							animationConfig={{cycles: Infinity}}
 						/>
 					) : (
 						<Icon
 							ref={failedIconRef}
 							style={{
-								...ConfirmBeanWeightScreenStyle.resultIcon,
-								...ConfirmBeanWeightScreenStyle.resultIconFailed,
+								...ConfirmGreenBeanWeightScreenStyle.resultIcon,
+								...ConfirmGreenBeanWeightScreenStyle.resultIconFailed,
 							}}
 							name="alert-circle-outline"
 							pack="ion"
@@ -146,19 +145,19 @@ const ConfirmBeanWeightScreen: FC<BeanInformationScreenProps> = ({navigation, ro
 						/>
 					)}
 					<Text
-						style={ConfirmBeanWeightScreenStyle.resultStatusText}
+						style={ConfirmGreenBeanWeightScreenStyle.resultStatusText}
 						category="h3"
-						status={succeed ? 'success' : 'danger'}>
-						{succeed ? 'Success' : 'Failed'}
+						status={succeed ? 'info' : 'danger'}>
+						{succeed ? 'Roasting started' : 'Failed'}
 					</Text>
-					<Text style={ConfirmBeanWeightScreenStyle.resultDescriptionText} category="p1">
-						{succeed ? 'You have added' : 'Failed to add'} {formatUnitValue(greenBeanWeight, 'gram')} of{' '}
-						{bean.name} bean to the inventory.
+					<Text style={ConfirmGreenBeanWeightScreenStyle.resultDescriptionText} category="p1">
+						{succeed ? 'You have put' : 'Failed to put'} {formatUnitValue(greenBeanWeight, 'gram')} of{' '}
+						{bean.name} green bean to the roasting process.
 					</Text>
-					<View style={ConfirmBeanWeightScreenStyle.resultActionView}>
+					<View style={ConfirmGreenBeanWeightScreenStyle.resultActionView}>
 						{succeed ? (
 							<Button
-								style={ConfirmBeanWeightScreenStyle.resultButton}
+								style={ConfirmGreenBeanWeightScreenStyle.resultButton}
 								size="large"
 								onPress={onDoneButtonPressed}>
 								Done
@@ -166,7 +165,7 @@ const ConfirmBeanWeightScreen: FC<BeanInformationScreenProps> = ({navigation, ro
 						) : (
 							<Fragment>
 								<Button
-									style={ConfirmBeanWeightScreenStyle.resultButton}
+									style={ConfirmGreenBeanWeightScreenStyle.resultButton}
 									appearance="outline"
 									size="large"
 									status="danger"
@@ -174,7 +173,7 @@ const ConfirmBeanWeightScreen: FC<BeanInformationScreenProps> = ({navigation, ro
 									Cancel
 								</Button>
 								<Button
-									style={ConfirmBeanWeightScreenStyle.resultButton}
+									style={ConfirmGreenBeanWeightScreenStyle.resultButton}
 									size="large"
 									onPress={onTryAgainButtonPressed}>
 									Try Again
@@ -188,26 +187,28 @@ const ConfirmBeanWeightScreen: FC<BeanInformationScreenProps> = ({navigation, ro
 	}
 
 	return (
-		<SafeAreaView style={ConfirmBeanWeightScreenStyle.container}>
+		<SafeAreaView style={ConfirmGreenBeanWeightScreenStyle.container}>
 			<ScrollView
-				style={ConfirmBeanWeightScreenStyle.scrollView}
-				contentContainerStyle={ConfirmBeanWeightScreenStyle.scrollViewContentContainer}>
-				<KeyboardAvoidingView style={ConfirmBeanWeightScreenStyle.keyboardAvoidingView} behavior="position">
+				style={ConfirmGreenBeanWeightScreenStyle.scrollView}
+				contentContainerStyle={ConfirmGreenBeanWeightScreenStyle.scrollViewContentContainer}>
+				<KeyboardAvoidingView
+					style={ConfirmGreenBeanWeightScreenStyle.keyboardAvoidingView}
+					behavior="position">
 					<FastImage
-						style={ConfirmBeanWeightScreenStyle.beanImage}
+						style={ConfirmGreenBeanWeightScreenStyle.beanImage}
 						resizeMode={FastImage.resizeMode.cover}
 						source={{
 							uri: API_BASE_URL + bean.image,
 						}}
 					/>
 
-					<Card style={ConfirmBeanWeightScreenStyle.beanCard} header={createCardHeader(bean.name)}>
+					<Card style={ConfirmGreenBeanWeightScreenStyle.beanCard} header={createCardHeader(bean.name)}>
 						<Text category="p1">{bean.description}</Text>
 					</Card>
 
-					<Card style={ConfirmBeanWeightScreenStyle.confirmCard}>
+					<Card style={ConfirmGreenBeanWeightScreenStyle.confirmCard}>
 						<Input
-							style={ConfirmBeanWeightScreenStyle.beanWeightInput}
+							style={ConfirmGreenBeanWeightScreenStyle.beanWeightInput}
 							value={greenBeanWeightString}
 							keyboardType="numeric"
 							label="Green Bean Weight (gram)"
@@ -218,9 +219,9 @@ const ConfirmBeanWeightScreen: FC<BeanInformationScreenProps> = ({navigation, ro
 							autoCorrect={false}
 						/>
 						<Button
-							style={ConfirmBeanWeightScreenStyle.addToInventoryButton}
-							onPress={onInputBeanToInventoryButtonPressed}>
-							Add {formatUnitValue(greenBeanWeight, 'gram')} to Inventory
+							style={ConfirmGreenBeanWeightScreenStyle.roastGreenBeanButton}
+							onPress={onRoastGreenBean}>
+							Roast {formatUnitValue(greenBeanWeight, 'gram')} of Green Bean
 						</Button>
 					</Card>
 				</KeyboardAvoidingView>
@@ -229,4 +230,4 @@ const ConfirmBeanWeightScreen: FC<BeanInformationScreenProps> = ({navigation, ro
 	);
 };
 
-export default ConfirmBeanWeightScreen;
+export default ConfirmGreenBeanWeightScreen;

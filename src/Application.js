@@ -1,14 +1,13 @@
 import React, {useEffect, useState} from 'react';
 import {StatusBar, useColorScheme} from 'react-native';
 import {getApplicationName, getDeviceName} from 'react-native-device-info';
-import {SafeAreaProvider} from 'react-native-safe-area-context';
-import {NavigationContainer} from '@react-navigation/native';
 import {ApplicationProvider as UIKittenProvider, IconRegistry} from '@ui-kitten/components';
 import * as eva from '@eva-design/eva';
+import Gleap from 'react-native-gleapsdk';
+import {GLEAP_TOKEN} from '@env';
+import ApplicationProvider from './components/ApplicationProvider';
 import {IonIconsPack} from './components/IonIcons';
 import {MaterialIconsPack} from './components/MaterialIcons';
-import AuthenticationProvider from './libs/context/AuthenticationProvider';
-import ProgressProvider from './libs/context/ProgressProvider';
 import useInit from './libs/hooks/InitHook';
 import useLogger from './libs/hooks/LoggerHook';
 import useUpdateChecker from './libs/hooks/UpdateChecker';
@@ -41,6 +40,11 @@ const Application: () => Node = () => {
 		}
 		const deviceName = await getDeviceName();
 		logger.info(`${applicationName} is running on ${deviceName} using ${engine} engine`);
+
+		if (GLEAP_TOKEN) {
+			logger.info('Gleap SDK initialized');
+		}
+
 		await checkUpdate();
 	}
 
@@ -48,24 +52,22 @@ const Application: () => Node = () => {
 		// setTheme(colorScheme === 'dark' ? applicationDarkTheme : applicationLightTheme);
 		setTheme(applicationLightTheme);
 		logger.info(`Color scheme changed to "${colorScheme}"`);
+
+		if (GLEAP_TOKEN) {
+			Gleap.setCustomData('Color scheme', colorScheme);
+		}
 	}
 
 	useEffect(onColorSchemeChanged, [colorScheme]);
 
 	return (
-		<SafeAreaProvider>
-			<NavigationContainer>
-				<ProgressProvider>
-					<AuthenticationProvider>
-						<IconRegistry icons={[IonIconsPack, MaterialIconsPack]} />
-						<UIKittenProvider {...eva} theme={theme}>
-							<StatusBar barStyle={colorScheme === 'dark' ? 'light-content' : 'dark-content'} />
-							<ScreenNavigator />
-						</UIKittenProvider>
-					</AuthenticationProvider>
-				</ProgressProvider>
-			</NavigationContainer>
-		</SafeAreaProvider>
+		<ApplicationProvider>
+			<IconRegistry icons={[IonIconsPack, MaterialIconsPack]} />
+			<UIKittenProvider {...eva} theme={theme}>
+				<StatusBar barStyle={colorScheme === 'dark' ? 'light-content' : 'dark-content'} />
+				<ScreenNavigator />
+			</UIKittenProvider>
+		</ApplicationProvider>
 	);
 };
 

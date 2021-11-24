@@ -6,7 +6,7 @@ import ErrorCode from '../../../core/enums/ErrorCode';
 import useAuthentication from '../../../libs/hooks/AuthenticationHook';
 import useLogger from '../../../libs/hooks/LoggerHook';
 import SignInScreenStyle from './SignInScreen.style';
-import AppTitleImage from '../../../components/AppTitleImage';
+import ApplicationLogoImage from '../../../components/ApplicationLogoImage';
 
 const SignInScreen: FC = () => {
 	const authentication = useAuthentication();
@@ -30,7 +30,7 @@ const SignInScreen: FC = () => {
 	}
 
 	function onSignInPressed() {
-		signIn().then().catch();
+		signIn().catch();
 	}
 
 	function onSignInFailed(message: string) {
@@ -82,7 +82,7 @@ const SignInScreen: FC = () => {
 			/>
 			<KeyboardAvoidingView style={SignInScreenStyle.keyboardAvoidingView} behavior="padding">
 				<View style={SignInScreenStyle.headerLayout}>
-					<AppTitleImage style={SignInScreenStyle.appTitleImage} />
+					<ApplicationLogoImage style={SignInScreenStyle.appTitleImage} />
 				</View>
 				<Card style={SignInScreenStyle.signInCard} status="primary">
 					<Input

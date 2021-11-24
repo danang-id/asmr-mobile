@@ -5,7 +5,7 @@ const ProfileScreenStyle = StyleSheet.create({
 		minHeight: '100%',
 	},
 	scrollView: {
-		marginHorizontal: 15,
+		paddingHorizontal: 15,
 	},
 	scrollViewContentContainer: {
 		flexDirection: 'column',
@@ -53,17 +53,12 @@ const ProfileScreenStyle = StyleSheet.create({
 		width: '100%',
 		marginBottom: 30,
 	},
+	shareFeedbackButton: {
+		borderRadius: 10,
+		marginBottom: 10,
+	},
 	signOutButton: {
 		borderRadius: 10,
-	},
-
-	aboutView: {
-		marginBottom: 20,
-	},
-	versionText: {
-		textAlign: 'center',
-		fontSize: 14,
-		fontWeight: '600',
 	},
 });
 

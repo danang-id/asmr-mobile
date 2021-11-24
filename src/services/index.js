@@ -83,7 +83,8 @@ function createServices(setProgress: SetProgressInfo): Services {
 		}
 
 		if (errors.findIndex(error => error.code === ErrorCode.NotAuthenticated) !== -1) {
-			// TODO: Go To Sign In Page
+			// This conditional is used on the Web to redirect to sign-in page, but irrelevant in mobile application.
+			// However, this condition may actually useful in the future, so it will be keep here.
 		}
 
 		if (logger && options.showLog) {

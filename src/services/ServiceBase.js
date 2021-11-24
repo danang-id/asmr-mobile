@@ -60,7 +60,13 @@ export default class ServiceBase {
 	}
 
 	_logRequest(request: AxiosRequestConfig, response: AxiosResponse) {
-		Logger.info(this.tag, `[${response.status}] ${request.method.toUpperCase()} ${request.url}`);
+		const status = response.status.toString(10);
+		const method = request.method.toUpperCase();
+		const url = request.url.endsWith('/') ? request.url.substring(0, request.url.length - 1) : request.url;
+		const urlSearchParams = new URLSearchParams(request.params).toString();
+		const params = urlSearchParams !== '' ? `?${urlSearchParams}` : '';
+		Logger.info(this.tag, `[${status}] ${method} ${url}${params}`);
+
 		if (this.options.log.requestHeader === true) {
 			Logger.info(this.tag, request.headers);
 		}

@@ -1,9 +1,7 @@
 import {Platform} from 'react-native';
 import {getDeviceName} from 'react-native-device-info';
-import {FileLogger as FileLogging} from 'react-native-file-logger';
+import {FileLogger as FileLogging, LogLevel} from 'react-native-file-logger';
 
-type WriterFunction = (...args: any[]) => void;
-type FileWriterFunction = (message: string) => void;
 export interface ILogger {
 	error(...args: any[]): void;
 	info(...args: any[]): void;
@@ -15,47 +13,48 @@ export interface ILoggerWithTag {
 	warn(tag: string, ...args: any[]): void;
 }
 
-export const ConsoleLogger: ILoggerWithTag = (function () {
-	let deviceName;
-	getDeviceName().then(name => (deviceName = name));
+function formatConsole(deviceName: string, tag: string, ...args: string[]) {
+	const now = new Date();
+	const title = `\x1b[1m\x1b[32m[${deviceName ?? Platform.OS}] \x1b[36m${tag}\x1b[0m\n      `;
+	const time = `\x1b[33m${now.toISOString()}\x1b[0m`;
+	return `${title} ${time} ${args.join(' ')}`;
+}
 
-	function write(writer: WriterFunction, tag: string, ...args: string[]) {
-		const now = new Date();
-		const title = `\x1b[1m\x1b[32m[${deviceName ?? Platform.OS}] \x1b[36m${tag}\x1b[0m\n      `;
-		const time = `\x1b[33m${now.toISOString()}\x1b[0m`;
-		writer(title, time, ...args);
-	}
+function formatFile(tag: string, ...args: string[]) {
+	return `${tag}: ${args.join(' ')}`;
+}
 
+export const FileLogger: ILoggerWithTag = (function () {
 	const logger: ILoggerWithTag = {
 		error(tag, ...args) {
-			write(console.error, tag, ...args);
+			FileLogging.write(LogLevel.Error, formatFile(tag, ...args));
 		},
 		info(tag, ...args) {
-			write(console.info, tag, ...args);
+			FileLogging.write(LogLevel.Info, formatFile(tag, ...args));
 		},
 		warn(tag, ...args) {
-			write(console.warn, tag, ...args);
+			FileLogging.write(LogLevel.Warning, formatFile(tag, ...args));
 		},
 	};
 	return logger;
 })();
 
-export const FileLogger: ILoggerWithTag = (function () {
-	function write(writer: FileWriterFunction, tag: string, ...args: string[]) {
-		const now = new Date();
-		const message = `${now.toISOString()} [${tag}] ${args.join(' ')}`;
-		writer(message);
-	}
+export const ConsoleLogger: ILoggerWithTag = (function () {
+	let deviceName;
+	getDeviceName().then(name => (deviceName = name));
 
 	const logger: ILoggerWithTag = {
 		error(tag, ...args) {
-			write(FileLogging.error, tag, ...args);
+			FileLogging.write(LogLevel.Error, formatFile(tag, ...args));
+			console.error(formatConsole(deviceName, tag, ...args));
 		},
 		info(tag, ...args) {
-			write(FileLogging.info, tag, ...args);
+			FileLogging.write(LogLevel.Info, formatFile(tag, ...args));
+			console.info(formatConsole(deviceName, tag, ...args));
 		},
 		warn(tag, ...args) {
-			write(FileLogging.warn, tag, ...args);
+			FileLogging.write(LogLevel.Warning, formatFile(tag, ...args));
+			console.warn(formatConsole(deviceName, tag, ...args));
 		},
 	};
 	return logger;

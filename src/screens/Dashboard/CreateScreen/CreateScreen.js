@@ -1,9 +1,11 @@
 import React, {FC} from 'react';
-import {SafeAreaView, View} from 'react-native';
+import {Alert, SafeAreaView, View} from 'react-native';
 import {BottomTabScreenProps} from '@react-navigation/bottom-tabs';
 import {Button, Text} from '@ui-kitten/components';
 
-import AppTitleImage from '../../../components/AppTitleImage';
+import ApplicationLogoImage from '../../../components/ApplicationLogoImage';
+import useInit from '../../../libs/hooks/InitHook';
+import useProduction from '../../../libs/hooks/ProductionHook';
 import ScreenRoutes from '../../ScreenRoutes';
 import DashboardRoutes from '../DashboardRoutes';
 import CreateScreenStyle from './CreateScreen.style';
@@ -11,11 +13,40 @@ import CreateScreenStyle from './CreateScreen.style';
 type CreateScreenProps = BottomTabScreenProps<{}, DashboardRoutes.Create>;
 
 const CreateScreen: FC<CreateScreenProps> = ({navigation}) => {
+	useInit(onInit);
+	const {ongoing: ongoingProduction, hasOngoingProduction, refresh: refreshProduction} = useProduction();
+
+	async function onInit() {
+		await refreshProduction();
+	}
+
 	function onAddGreenBeanStockButtonPressed() {
 		navigation.navigate(ScreenRoutes.AddGreenBeanStock);
 	}
 
 	function onRoastGreenBeanButtonPressed() {
+		if (hasOngoingProduction()) {
+			Alert.alert(
+				'Roasting on-progress',
+				`You are currently roasting ${ongoingProduction.bean.name} bean. ` +
+					'Please wait until the current roasting process to finished before you roast another bean.',
+				[
+					{
+						style: 'default',
+						text: 'See Roasting Status',
+						onPress: () => {
+							navigation.navigate(DashboardRoutes.Main);
+						},
+					},
+					{
+						style: 'default',
+						text: 'OK',
+					},
+				],
+			);
+			return;
+		}
+
 		navigation.navigate(ScreenRoutes.RoastGreenBean);
 	}
 
@@ -23,7 +54,7 @@ const CreateScreen: FC<CreateScreenProps> = ({navigation}) => {
 		<SafeAreaView style={CreateScreenStyle.container}>
 			<View style={CreateScreenStyle.contentView}>
 				<View style={CreateScreenStyle.headerView}>
-					<AppTitleImage style={CreateScreenStyle.appTitleImage} />
+					<ApplicationLogoImage style={CreateScreenStyle.appTitleImage} />
 				</View>
 				<View style={CreateScreenStyle.createView}>
 					<Text style={CreateScreenStyle.createQuestionText}>What would you like to do?</Text>
@@ -36,6 +67,8 @@ const CreateScreen: FC<CreateScreenProps> = ({navigation}) => {
 					<Button
 						style={CreateScreenStyle.roastGreenBeanButton}
 						onPress={onRoastGreenBeanButtonPressed}
+						appearance={hasOngoingProduction() ? 'outline' : 'filled'}
+						status={hasOngoingProduction() ? 'basic' : 'primary'}
 						size="large">
 						Roast Green Bean
 					</Button>

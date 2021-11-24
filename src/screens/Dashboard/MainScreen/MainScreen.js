@@ -1,18 +1,23 @@
-import React, {FC, useCallback, useEffect, useState} from 'react';
-import {Alert, Linking, RefreshControl, SafeAreaView, ScrollView, View} from 'react-native';
+import React, {FC, Fragment, useCallback, useEffect, useState} from 'react';
+import {ActivityIndicator, Alert, Linking, RefreshControl, SafeAreaView, ScrollView, View} from 'react-native';
 import {Button, Card, Text} from '@ui-kitten/components';
 import {API_BASE_URL} from '@env';
-import UserRole from '../../../core/entities/UserRole';
 import Role from '../../../core/enums/Role';
-import AppTitleImage from '../../../components/AppTitleImage';
-import {createCardHeader} from '../../../libs/components/CardHeader';
-import {getRoleString} from '../../../libs/common/RoleHelper';
-import useInit from '../../../libs/hooks/InitHook';
-import useAuthentication from '../../../libs/hooks/AuthenticationHook';
-import MainScreenStyle from './MainScreen.style';
-import useServices from '../../../libs/hooks/ServiceHook';
-import useLogger from '../../../libs/hooks/LoggerHook';
+import IncomingGreenBean from '../../../core/entities/IncomingGreenBean';
 import RoastedBeanProduction from '../../../core/entities/RoastedBeanProduction';
+import UserRole from '../../../core/entities/UserRole';
+import ApplicationLogoImage from '../../../components/ApplicationLogoImage';
+import {createCardHeader} from '../../../libs/components/CardHeader';
+import {getGreetingString} from '../../../libs/common/DateHelper';
+import {getRoleString} from '../../../libs/common/RoleHelper';
+import {formatUnitValue} from '../../../libs/common/UnitHelper';
+import useAuthentication from '../../../libs/hooks/AuthenticationHook';
+import useInit from '../../../libs/hooks/InitHook';
+import useInventory from '../../../libs/hooks/InventoryHook';
+import useLogger from '../../../libs/hooks/LoggerHook';
+import useProduction from '../../../libs/hooks/ProductionHook';
+import useProgress from '../../../libs/hooks/ProgressHook';
+import MainScreenStyle from './MainScreen.style';
 
 const UnsupportedRoleCard: FC<{userRoles: UserRole[]}> = ({userRoles, ...props}) => {
 	const [roles, setRoles] = useState('other roles');
@@ -47,134 +52,182 @@ const UnsupportedRoleCard: FC<{userRoles: UserRole[]}> = ({userRoles, ...props})
 
 const MainScreen: FC = () => {
 	useInit(onInit);
-	const {user, updateUserData} = useAuthentication();
+	const {user, refresh: refreshAuthentication} = useAuthentication();
 	const logger = useLogger(MainScreen);
-	const {handleError, handleErrors, bean: beanService, production: productionService} = useServices();
+	const [progress] = useProgress();
 
-	const [currentBean, setCurrentBean] = useState();
-	const [currentProduction, setCurrentProduction] = useState();
-	const [greetingText, setGreetingText] = useState('');
+	const {list: inventoryList, getBeanById, refresh: refreshInventory} = useInventory();
+	const {
+		list: productionList,
+		ongoing: ongoingProduction,
+		hasOngoingProduction,
+		finalize: finalizeProduction,
+		cancel: cancelProduction,
+		refresh: refreshProduction,
+	} = useProduction();
+
+	const [greeting, setGreeting] = useState('');
 	const [hasRoasterRole, setHasRoasterRole] = useState(false);
 	const [initialized, setInitialized] = useState(false);
-	const [roastedBeanProductions, setRoastedBeanProductions] = useState([]);
 	const [refreshing, setRefreshing] = useState(false);
 
 	async function onInit() {
+		setRefreshing(true);
 		onUserDataUpdated();
-		await updateProductionList();
-		await updateUserData();
+		await refreshAuthentication();
+		await Promise.all([refreshInventory(), refreshProduction()]);
+		setRefreshing(false);
 	}
 
 	const onRefresh = useCallback(() => {
 		setRefreshing(true);
-		updateProductionList().then();
+		Promise.all([refreshInventory(), refreshProduction()])
+			.catch()
+			.finally(() => {
+				setRefreshing(false);
+			});
 	}, []);
 
 	function onUserDataUpdated() {
-		let newGreetingText = '';
-		const date = new Date();
-		const hour = date.getHours();
-		if (hour < 12) {
-			newGreetingText += 'Good morning, ';
-		} else if (hour >= 12 && hour <= 17) {
-			newGreetingText += 'Good afternoon, ';
-		} else if (hour >= 17 && hour <= 24) {
-			newGreetingText += 'Good evening, ';
-		}
-		newGreetingText += user.firstName + '!';
-		setGreetingText(newGreetingText);
+		const newGreeting = getGreetingString(user.firstName);
+
+		setGreeting(newGreeting);
 		setHasRoasterRole(user.roles.findIndex(userRole => userRole.role === Role.Roaster) !== -1);
 		setInitialized(true);
+
+		logger.info(newGreeting);
 	}
 
-	function onRoastedBeanProductionsUpdated() {
-		setCurrentProduction(
-			roastedBeanProductions.find((p: RoastedBeanProduction) => !p.isFinalized && !p.isCancelled),
+	function onCancelRoastingButtonPressed() {
+		Alert.alert(
+			'Cancel Roasting',
+			'Do you really want to cancel the roasting process of ' +
+				`${formatUnitValue(ongoingProduction.production.greenBeanWeight, 'gram')} of ` +
+				`${ongoingProduction.bean.name} bean?`,
+			[
+				{
+					style: 'destructive',
+					text: 'Yes, cancel roasting',
+					onPress: () => {
+						cancelProduction().catch();
+					},
+				},
+				{
+					style: 'default',
+					text: 'No',
+				},
+			],
 		);
-		setRefreshing(false);
 	}
 
-	function onCurrentProductionUpdated() {
-		if (currentProduction) {
-			getBean(currentProduction.beanId).then();
-		}
+	function onFinishRoastingButtonPressed() {
+		Alert.alert(
+			'Finish Roasting',
+			`Is the roasting of ${formatUnitValue(ongoingProduction.production.greenBeanWeight, 'gram')} of ` +
+				`${ongoingProduction.bean.name} bean already finished?`,
+			[
+				{
+					style: 'destructive',
+					text: 'Not yet finished',
+				},
+				{
+					style: 'default',
+					text: 'Roasting is done',
+					onPress: () => {
+						Alert.alert('Feature coming soon!');
+					},
+				},
+			],
+		);
 	}
 
-	async function updateProductionList() {
-		try {
-			const result = await productionService.getAll();
-			if (result.isSuccess && result.data) {
-				setRoastedBeanProductions(result.data);
-				return;
-			}
-
-			if (result.errors) {
-				handleErrors(result.errors, logger);
-			}
-		} catch (error) {
-			handleError(error, logger);
-		}
+	function onMoreStockHistoryPressed() {
+		Alert.alert('Complete stock history feature is coming soon!');
 	}
 
-	async function getBean(beanId: string) {
-		try {
-			const result = await beanService.getById(beanId);
-			if (result.isSuccess && result.data) {
-				setCurrentBean(result.data);
-				return;
-			}
-
-			if (result.errors) {
-				handleErrors(result.errors, logger);
-			}
-		} catch (error) {
-			handleError(error, logger);
-		}
+	function onMoreRoastingHistoryPressed() {
+		Alert.alert('Complete roasting history feature is coming soon!');
 	}
-
-	useEffect(onUserDataUpdated, [user]);
-
-	useEffect(onRoastedBeanProductionsUpdated, [roastedBeanProductions]);
-
-	useEffect(onCurrentProductionUpdated, [currentProduction]);
 
 	const SupportedView: FC = () => (
 		<View>
-			<Card
-				style={MainScreenStyle.productionStatusCard}
-				status={currentProduction && currentBean ? 'info' : undefined}>
-				{currentProduction && currentBean ? (
-					<View>
-						<Text style={MainScreenStyle.productionStatusText}>
-							You are currently roasting {currentProduction.greenBeanWeight} gram(s) of {currentBean.name}{' '}
-							bean.
-						</Text>
-						<Text style={MainScreenStyle.productionFinishText}>
-							If you have finished the roasting process, please tap Finish Roasting.
-						</Text>
-						<Button style={MainScreenStyle.productionFinishButton} status="success">
-							Finish Roasting
+			{!refreshing && hasOngoingProduction() && (
+				<Card style={MainScreenStyle.productionStatusCard} status="info">
+					<Text style={MainScreenStyle.productionStatusText}>
+						Currently roasting {formatUnitValue(ongoingProduction.production.greenBeanWeight, 'gram')} of{' '}
+						{ongoingProduction.bean.name} bean
+					</Text>
+					<Text style={MainScreenStyle.productionFinishText}>
+						If you have finished the roasting process, please tap Finish. To cancel this roasting process,
+						please tap Cancel.
+					</Text>
+					<View style={MainScreenStyle.productionActionView}>
+						<Button
+							style={MainScreenStyle.productionCancelButton}
+							status="danger"
+							onPress={onCancelRoastingButtonPressed}>
+							Cancel
+						</Button>
+						<Button
+							style={MainScreenStyle.productionFinishButton}
+							status="success"
+							onPress={onFinishRoastingButtonPressed}>
+							Finish
 						</Button>
 					</View>
+				</Card>
+			)}
+			<Card
+				style={MainScreenStyle.stockHistoryCard}
+				status="primary"
+				header={createCardHeader('Stock History', 'list of beans you added to the inventory')}>
+				{refreshing ? (
+					<ActivityIndicator />
+				) : inventoryList && inventoryList.length > 0 ? (
+					<Fragment>
+						{inventoryList.slice(0, 4).map((incoming: IncomingGreenBean, index) => (
+							<Text style={MainScreenStyle.stockText} key={index}>
+								Added {formatUnitValue(incoming.weightAdded, 'gram')} of{' '}
+								{getBeanById(incoming.beanId)?.name} bean.
+							</Text>
+						))}
+						{inventoryList.length > 5 && (
+							<Text style={MainScreenStyle.moreStockText} onPress={onMoreStockHistoryPressed}>
+								More stock history >
+							</Text>
+						)}
+					</Fragment>
 				) : (
-					<View>
-						<Text style={MainScreenStyle.productionStatusText}>
-							You are not roasting beans at the moment.
-						</Text>
-					</View>
+					<Text style={MainScreenStyle.stockText}>You have never added any beans to the inventory yet.</Text>
 				)}
 			</Card>
 			<Card
-				style={MainScreenStyle.productionHistoryCard}
+				style={MainScreenStyle.roastingHistoryCard}
 				status="primary"
 				header={createCardHeader('Roasting History', 'list of beans you have roasted')}>
-				{roastedBeanProductions && roastedBeanProductions.length > 0 ? (
-					<Text>You have roasted beans {roastedBeanProductions.length} times.</Text>
+				{refreshing ? (
+					<ActivityIndicator />
+				) : productionList && productionList.length > 0 ? (
+					<Fragment>
+						{productionList.slice(0, 4).map((production: RoastedBeanProduction, index) => (
+							<Text style={MainScreenStyle.roastingText} key={index}>
+								{production.isFinalized
+									? '[FINISHED]'
+									: production.isCancelled
+									? '[CANCELLED]'
+									: '[ON PROGRESS]'}{' '}
+								Roasting of {formatUnitValue(production.greenBeanWeight, 'gram')} of{' '}
+								{getBeanById(production.beanId)?.name} bean.
+							</Text>
+						))}
+						{productionList.length > 5 && (
+							<Text style={MainScreenStyle.moreRoastingText} onPress={onMoreRoastingHistoryPressed}>
+								More roasting history >
+							</Text>
+						)}
+					</Fragment>
 				) : (
-					<Text>
-						You have never roasted any beans yet.{'\n'}
-						Let's roast a bean!
-					</Text>
+					<Text style={MainScreenStyle.roastingText}>You have never roasted any beans yet.</Text>
 				)}
 			</Card>
 		</View>
@@ -196,9 +249,9 @@ const MainScreen: FC = () => {
 					<RefreshControl refreshing={refreshing} onRefresh={onRefresh} title="Refreshing information..." />
 				}>
 				<View style={MainScreenStyle.headerView}>
-					<AppTitleImage style={MainScreenStyle.appTitleImage} />
+					<ApplicationLogoImage style={MainScreenStyle.appTitleImage} />
 					<Text style={MainScreenStyle.greetingText} status="primary">
-						{greetingText}
+						{greeting}
 					</Text>
 				</View>
 				{initialized && <MainContent />}

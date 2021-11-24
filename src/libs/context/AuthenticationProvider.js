@@ -1,4 +1,6 @@
 import React, {FC, useEffect} from 'react';
+import Gleap from 'react-native-gleapsdk';
+import {GLEAP_TOKEN} from '@env';
 import ErrorCode from '../../core/enums/ErrorCode';
 import User from '../../core/entities/User';
 import AuthenticationResponseModel from '../../core/response/AuthenticationResponseModel';
@@ -19,10 +21,10 @@ const AuthenticationProvider: FC = ({children}) => {
 	const previousUser = usePrevious(user);
 
 	function onInit(): Promise<void> {
-		return updateUserData();
+		return refresh();
 	}
 
-	function onUserDataChanged(): void {
+	function onAuthenticationRefreshed(): void {
 		const logAuthChange = () => {
 			logger.info('Authentication Changed:', user ? `${user.username} (${user.emailAddress})` : 'null');
 		};
@@ -33,6 +35,21 @@ const AuthenticationProvider: FC = ({children}) => {
 		}
 		if ((!previousUser && !!user) || (!!previousUser && !user)) {
 			// Sign in or sign out activity
+			if (user) {
+				if (GLEAP_TOKEN) {
+					Gleap.logEvent('Authentication: Sign in', user);
+					Gleap.identify(user.id, {
+						name: user.firstName + ' ' + user.lastName,
+						email: user.emailAddress,
+					});
+				}
+			} else {
+				if (GLEAP_TOKEN) {
+					Gleap.logEvent('Authentication: Sign out');
+					Gleap.clearIdentity();
+				}
+			}
+
 			logAuthChange();
 		}
 
@@ -78,6 +95,24 @@ const AuthenticationProvider: FC = ({children}) => {
 		return false;
 	}
 
+	async function refresh(): Promise<void> {
+		try {
+			const result = await gateService.getUserPassport();
+			if (result.isSuccess && result.data) {
+				setUser(parseUserData(result.data));
+			}
+
+			if (result.errors && Array.isArray(result.errors)) {
+				const unauthenticatedError = result.errors.find(error => error.code === ErrorCode.NotAuthenticated);
+				if (!unauthenticatedError) {
+					handleErrors(result.errors, logger);
+				}
+			}
+		} catch (error) {
+			handleError(error, logger);
+		}
+	}
+
 	async function signIn(username?: string, password?: string): Promise<AuthenticationResponseModel> {
 		const result = await gateService.authenticate({username, password, rememberMe: true});
 		if (result.isSuccess && result.data) {
@@ -97,25 +132,7 @@ const AuthenticationProvider: FC = ({children}) => {
 		return result;
 	}
 
-	async function updateUserData(): Promise<AuthenticationResponseModel> {
-		try {
-			const result = await gateService.getUserPassport();
-			if (result.isSuccess && result.data) {
-				setUser(parseUserData(result.data));
-			}
-
-			if (result.errors && Array.isArray(result.errors)) {
-				const unauthenticatedError = result.errors.find(error => error.code === ErrorCode.NotAuthenticated);
-				if (!unauthenticatedError) {
-					handleErrors(result.errors, logger);
-				}
-			}
-		} catch (error) {
-			handleError(error, logger);
-		}
-	}
-
-	useEffect(onUserDataChanged, [user]);
+	useEffect(onAuthenticationRefreshed, [user]);
 
 	return (
 		<AuthenticationContext.Provider
@@ -126,9 +143,9 @@ const AuthenticationProvider: FC = ({children}) => {
 				handleErrors: handleErrors,
 				isAuthenticated: isAuthenticated,
 				isAuthorized: isAuthorized,
+				refresh: refresh,
 				signIn: signIn,
 				signOut: signOut,
-				updateUserData: updateUserData,
 			}}>
 			{children}
 		</AuthenticationContext.Provider>

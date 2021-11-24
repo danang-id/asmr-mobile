@@ -9,7 +9,7 @@ import QRCodeScanner from 'react-native-qrcode-scanner';
 import {BarCodeReadEvent, RNCamera} from 'react-native-camera';
 import {API_BASE_URL} from '@env';
 import ErrorCode from '../../../core/enums/ErrorCode';
-import AppTitleImage from '../../../components/AppTitleImage';
+import ApplicationLogoImage from '../../../components/ApplicationLogoImage';
 import useInit from '../../../libs/hooks/InitHook';
 import useLogger from '../../../libs/hooks/LoggerHook';
 import useServices from '../../../libs/hooks/ServiceHook';
@@ -95,7 +95,7 @@ const ScanGreenBeanQrCodeScreen: FC<ScanGreenBeanScreenProps> = ({navigation}) =
 			return;
 		}
 
-		getBean().then();
+		getBean().catch();
 	}
 
 	function onBeanChanged() {
@@ -166,7 +166,7 @@ const ScanGreenBeanQrCodeScreen: FC<ScanGreenBeanScreenProps> = ({navigation}) =
 
 	const BottomContent: FC = () => (
 		<View style={ScanGreenBeanQrCodeScreenStyle.bottomContent}>
-			<AppTitleImage style={ScanGreenBeanQrCodeScreenStyle.appTitleImage} />
+			<ApplicationLogoImage style={ScanGreenBeanQrCodeScreenStyle.appTitleImage} />
 		</View>
 	);
 
@@ -189,7 +189,7 @@ const ScanGreenBeanQrCodeScreen: FC<ScanGreenBeanScreenProps> = ({navigation}) =
 		}
 
 		function onAllowCameraUseButtonPressed() {
-			openSettings().then();
+			openSettings().catch();
 		}
 
 		return (

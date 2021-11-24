@@ -3,7 +3,6 @@ import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import ProgressView from '../../components/ProgressView';
 import ScanBeanQrCodeScreen from './ScanBeanQrCodeScreen';
 import ConfirmBeanWeightScreen from './ConfirmBeanWeightScreen';
-import AddResultScreen from './AddResultScreen';
 import AddGreenBeanStockRoutes from './AddGreenBeanStockRoutes';
 
 const Stack = createNativeStackNavigator();
