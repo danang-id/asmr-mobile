@@ -19,11 +19,12 @@ const ConfirmGreenBeanWeightScreenStyle = StyleSheet.create({
 
 	beanCard: {
 		marginHorizontal: 15,
-		marginVertical: 15,
+		marginTop: 15,
 	},
 	confirmCard: {
 		marginHorizontal: 15,
-		marginBottom: 30,
+		marginTop: 5,
+		marginBottom: 20,
 	},
 	beanWeightInput: {
 		marginBottom: 10,

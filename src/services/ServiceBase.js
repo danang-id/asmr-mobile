@@ -1,10 +1,10 @@
 import {Platform} from 'react-native';
+import {getVersion} from 'react-native-device-info';
 import axios, {AxiosError, AxiosInstance, AxiosRequestConfig, AxiosResponse, CancelTokenSource} from 'axios';
 import EncryptedStorage from 'react-native-encrypted-storage';
 import {API_BASE_URL} from '@env';
 import Logger from '../libs/common/Logger';
 import type {SetProgressInfo} from '../libs/context/ProgressContextInfo';
-import {version} from '../../package.json';
 
 export interface ServiceLogOptions {
 	requestHeader?: boolean;
@@ -46,7 +46,7 @@ export default class ServiceBase {
 			},
 			params: {
 				clientPlatform: Platform.OS === 'android' ? 'Android' : Platform.OS === 'ios' ? 'iOS' : Platform.OS,
-				clientVersion: version,
+				clientVersion: getVersion(),
 			},
 			validateStatus: status => status >= 200 && status <= 504,
 		});

@@ -15,15 +15,20 @@ const MainScreenStyle = StyleSheet.create({
 		paddingTop: 30,
 		paddingBottom: 10,
 	},
+	headerBarView: {
+		marginBottom: 15,
+		flexDirection: 'row',
+		alignItems: 'center',
+		justifyContent: 'space-between',
+	},
 	appTitleImage: {
 		height: 50,
 		width: 145,
-		marginBottom: 15,
 	},
 	greetingText: {
 		fontSize: 20,
 		fontWeight: '500',
-		marginBottom: 20,
+		marginBottom: 5,
 	},
 
 	unsupportedRoleCard: {},
@@ -33,34 +38,54 @@ const MainScreenStyle = StyleSheet.create({
 	},
 
 	productionStatusCard: {
-		marginBottom: 10,
-	},
-	productionStatusText: {
-		fontSize: 18,
-		fontWeight: '700',
-	},
-	productionFinishText: {
-		marginTop: 10,
-		fontSize: 16,
-	},
-	productionActionView: {
-		marginTop: 20,
-		flexDirection: 'row',
-		alignItems: 'center',
-		justifyContent: 'flex-end',
-	},
-	productionCancelButton: {
-		marginRight: 5,
-	},
-	productionFinishButton: {},
-
-	stockHistoryCard: {
 		marginBottom: 15,
 	},
-	stockText: {
-		marginVertical: 3,
+	productionStatusHeaderView: {
+		flexDirection: 'row',
+		alignItems: 'flex-start',
+		justifyContent: 'flex-start',
 	},
-	moreStockText: {
+	productionStatusIcon: {
+		height: 42,
+		width: 42,
+	},
+	productionStatusSideView: {
+		marginHorizontal: 15,
+		flexDirection: 'column',
+	},
+	productionStatusCurrentlyRoastingText: {
+		fontSize: 16,
+		fontWeight: '400',
+	},
+	productionStatusBeanNameText: {
+		fontSize: 20,
+		fontWeight: '800',
+		color: '#2067F7',
+	},
+	productionStatusBeanWeightText: {
+		marginTop: 5,
+		fontSize: 16,
+	},
+	productionStatusFooterView: {
+		marginTop: 15,
+		flexDirection: 'row',
+		alignItems: 'center',
+		justifyContent: 'space-between',
+	},
+	productionStatusCreatedText: {
+		fontStyle: 'italic',
+	},
+	productionViewProgressText: {
+		fontSize: 16,
+		fontWeight: '700',
+		textAlign: 'right',
+	},
+
+	stockHistoryCard: {
+		marginBottom: 10,
+	},
+	stockHistoryEmptyText: {},
+	moreStockHistoryText: {
 		marginTop: 15,
 		fontSize: 16,
 		fontWeight: '700',
@@ -68,16 +93,73 @@ const MainScreenStyle = StyleSheet.create({
 	},
 
 	roastingHistoryCard: {
-		marginBottom: 15,
+		marginBottom: 10,
 	},
-	roastingText: {
-		marginVertical: 3,
-	},
-	moreRoastingText: {
+	roastingHistoryEmptyText: {},
+	moreRoastingHistoryText: {
 		marginTop: 15,
 		fontSize: 16,
 		fontWeight: '700',
 		textAlign: 'right',
+	},
+
+	packagingHistoryCard: {
+		marginBottom: 20,
+	},
+	packagingHistoryEmptyText: {},
+	morePackagingHistoryText: {
+		marginTop: 15,
+		fontSize: 16,
+		fontWeight: '700',
+		textAlign: 'right',
+	},
+
+	stockItemView: {
+		marginVertical: 5,
+		flexDirection: 'row',
+		alignItems: 'center',
+		justifyContent: 'flex-start',
+	},
+	stockItemIcon: {
+		height: 24,
+		width: 24,
+	},
+	stockItemSideView: {
+		marginLeft: 10,
+		flexDirection: 'column',
+	},
+	stockItemBeanNameText: {
+		fontSize: 16,
+		fontWeight: '600',
+	},
+	stockItemWeightText: {},
+	stockItemCreatedText: {
+		marginTop: 4,
+		fontStyle: 'italic',
+	},
+
+	roastingItemView: {
+		marginVertical: 5,
+		flexDirection: 'row',
+		alignItems: 'center',
+		justifyContent: 'flex-start',
+	},
+	roastingItemIcon: {
+		height: 24,
+		width: 24,
+	},
+	roastingItemSideView: {
+		marginLeft: 10,
+		flexDirection: 'column',
+	},
+	roastingItemBeanNameText: {
+		fontSize: 16,
+		fontWeight: '600',
+	},
+	roastingItemWeightText: {},
+	roastingItemCreatedText: {
+		marginTop: 4,
+		fontStyle: 'italic',
 	},
 });
 

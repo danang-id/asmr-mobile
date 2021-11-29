@@ -45,7 +45,7 @@ const AuthenticationProvider: FC = ({children}) => {
 				}
 			} else {
 				if (GLEAP_TOKEN) {
-					Gleap.logEvent('Authentication: Sign out');
+					Gleap.logEvent('Authentication: Sign out', {});
 					Gleap.clearIdentity();
 				}
 			}

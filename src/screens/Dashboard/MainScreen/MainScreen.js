@@ -1,12 +1,16 @@
-import React, {FC, Fragment, useCallback, useEffect, useState} from 'react';
+import React, {FC, Fragment, useCallback, useState} from 'react';
 import {ActivityIndicator, Alert, Linking, RefreshControl, SafeAreaView, ScrollView, View} from 'react-native';
-import {Button, Card, Text} from '@ui-kitten/components';
+import {Button, Card, Divider, Icon, Text} from '@ui-kitten/components';
 import {API_BASE_URL} from '@env';
+import RoastingCancellationReason from '../../../core/enums/RoastingCancellationReason';
 import Role from '../../../core/enums/Role';
+import Bean from '../../../core/entities/Bean';
 import IncomingGreenBean from '../../../core/entities/IncomingGreenBean';
-import RoastedBeanProduction from '../../../core/entities/RoastedBeanProduction';
+import RoastingSession from '../../../core/entities/RoastingSession';
 import UserRole from '../../../core/entities/UserRole';
 import ApplicationLogoImage from '../../../components/ApplicationLogoImage';
+import ProfilePicture from '../../../components/ProfilePicture';
+import TimeAgo from '../../../components/TimeAgo';
 import {createCardHeader} from '../../../libs/components/CardHeader';
 import {getGreetingString} from '../../../libs/common/DateHelper';
 import {getRoleString} from '../../../libs/common/RoleHelper';
@@ -16,11 +20,13 @@ import useInit from '../../../libs/hooks/InitHook';
 import useInventory from '../../../libs/hooks/InventoryHook';
 import useLogger from '../../../libs/hooks/LoggerHook';
 import useProduction from '../../../libs/hooks/ProductionHook';
-import useProgress from '../../../libs/hooks/ProgressHook';
+import ScreenRoutes from '../../ScreenRoutes';
 import MainScreenStyle from './MainScreen.style';
+import {BottomTabScreenProps} from '@react-navigation/bottom-tabs';
+import DashboardRoutes from '../DashboardRoutes';
 
 const UnsupportedRoleCard: FC<{userRoles: UserRole[]}> = ({userRoles, ...props}) => {
-	const [roles, setRoles] = useState('other roles');
+	const roles = userRoles.map(userRole => getRoleString(userRole.role)).join(' and ');
 
 	function onUseWebDashboardPressed() {
 		const dashboardUrl = API_BASE_URL + '/dashboard';
@@ -33,36 +39,30 @@ const UnsupportedRoleCard: FC<{userRoles: UserRole[]}> = ({userRoles, ...props})
 		});
 	}
 
-	useEffect(() => {
-		if (userRoles && Array.isArray(userRoles) && userRoles.length > 0) {
-			setRoles(userRoles.map(userRole => getRoleString(userRole.role)).join(' and '));
-		}
-	}, [userRoles]);
-
 	return (
 		<Card status="warning" header={createCardHeader('Unsupported Roles')} {...props}>
 			<Text style={MainScreenStyle.unsupportedRoleText}>
 				We are only supporting Roaster role in this mobile application at this moment.{'\n\n'}
 				For {roles}, please use the web dashboard.
 			</Text>
-			<Button onPress={onUseWebDashboardPressed}>Use Web Dashboard</Button>
+			<Button onPress={onUseWebDashboardPressed}>Open Web Dashboard</Button>
 		</Card>
 	);
 };
 
-const MainScreen: FC = () => {
+type MainScreenParams = {};
+type MainScreenProps = BottomTabScreenProps<MainScreenParams, DashboardRoutes.Main>;
+
+const MainScreen: FC<MainScreenProps> = ({navigation}) => {
 	useInit(onInit);
 	const {user, refresh: refreshAuthentication} = useAuthentication();
 	const logger = useLogger(MainScreen);
-	const [progress] = useProgress();
 
 	const {list: inventoryList, getBeanById, refresh: refreshInventory} = useInventory();
 	const {
 		list: productionList,
 		ongoing: ongoingProduction,
 		hasOngoingProduction,
-		finalize: finalizeProduction,
-		cancel: cancelProduction,
 		refresh: refreshProduction,
 	} = useProduction();
 
@@ -98,136 +98,184 @@ const MainScreen: FC = () => {
 		logger.info(newGreeting);
 	}
 
-	function onCancelRoastingButtonPressed() {
-		Alert.alert(
-			'Cancel Roasting',
-			'Do you really want to cancel the roasting process of ' +
-				`${formatUnitValue(ongoingProduction.production.greenBeanWeight, 'gram')} of ` +
-				`${ongoingProduction.bean.name} bean?`,
-			[
-				{
-					style: 'destructive',
-					text: 'Yes, cancel roasting',
-					onPress: () => {
-						cancelProduction().catch();
-					},
-				},
-				{
-					style: 'default',
-					text: 'No',
-				},
-			],
+	function onProductionStatusCardPressed() {
+		navigation.navigate(ScreenRoutes.RoastingProcess);
+	}
+
+	function onStockHistoryCardPressed() {
+		Alert.alert('Full stock history feature is coming soon!');
+	}
+
+	function onRoastingHistoryCardPressed() {
+		Alert.alert('Full roasting history feature is coming soon!');
+	}
+
+	function renderIncomingItem(incoming: IncomingGreenBean, index: number, list: IncomingGreenBean[]) {
+		const beanOnFile: Bean | undefined = getBeanById(incoming.beanId);
+		const isLastItem = index === list.length - 1;
+		return (
+			<Fragment key={index}>
+				<View style={MainScreenStyle.stockItemView}>
+					<Icon style={MainScreenStyle.stockItemIcon} name="add-circle-outline" pack="ion" />
+					<View style={MainScreenStyle.stockItemSideView}>
+						<Text style={MainScreenStyle.stockItemBeanNameText}>{beanOnFile?.name ?? ''}</Text>
+						<Text style={MainScreenStyle.stockItemWeightText}>
+							{formatUnitValue(incoming.weightAdded, 'gram')}
+						</Text>
+						<Text style={MainScreenStyle.stockItemCreatedText}>
+							Added <TimeAgo date={incoming.createdAt} locale="en-US" />
+						</Text>
+					</View>
+				</View>
+				{!isLastItem && <Divider />}
+			</Fragment>
 		);
 	}
 
-	function onFinishRoastingButtonPressed() {
-		Alert.alert(
-			'Finish Roasting',
-			`Is the roasting of ${formatUnitValue(ongoingProduction.production.greenBeanWeight, 'gram')} of ` +
-				`${ongoingProduction.bean.name} bean already finished?`,
-			[
-				{
-					style: 'destructive',
-					text: 'Not yet finished',
-				},
-				{
-					style: 'default',
-					text: 'Roasting is done',
-					onPress: () => {
-						Alert.alert('Feature coming soon!');
-					},
-				},
-			],
+	function renderProductionItem(production: RoastingSession, index: number, list: RoastingSession[]) {
+		const beanOnFile: Bean | undefined = getBeanById(production.beanId);
+		const isLastItem = index === list.length - 1;
+		return (
+			<Fragment key={index}>
+				<View style={MainScreenStyle.roastingItemView}>
+					<Icon
+						style={MainScreenStyle.roastingItemIcon}
+						name={
+							production.finishedAt
+								? 'checkmark-circle-outline'
+								: production.cancelledAt
+								? 'close-circle-outline'
+								: 'sync-circle-outline'
+						}
+						pack="ion"
+					/>
+					<View style={MainScreenStyle.roastingItemSideView}>
+						<Text style={MainScreenStyle.roastingItemBeanNameText}>{beanOnFile?.name ?? ''}</Text>
+						{production.finishedAt ? (
+							<Fragment>
+								<Text style={MainScreenStyle.roastingItemWeightText}>
+									{formatUnitValue(production.greenBeanWeight, 'gram')} [G] →{' '}
+									{formatUnitValue(production.roastedBeanWeight, 'gram')} [R]
+								</Text>
+								<Text style={MainScreenStyle.roastingItemCreatedText}>
+									Finished <TimeAgo date={production.finishedAt} locale="en-US" />
+								</Text>
+							</Fragment>
+						) : production.cancelledAt ? (
+							<Fragment>
+								<Text style={MainScreenStyle.roastingItemWeightText}>
+									{formatUnitValue(production.greenBeanWeight, 'gram')} [G] →{' '}
+									{production.cancellationReason === RoastingCancellationReason.RoastingFailure
+										? formatUnitValue(production.roastedBeanWeight, 'gram') + ' [R]'
+										: formatUnitValue(production.greenBeanWeight, 'gram') + ' [G]'}
+								</Text>
+								<Text style={MainScreenStyle.roastingItemCreatedText}>
+									Cancelled <TimeAgo date={production.cancelledAt} locale="en-US" />
+								</Text>
+							</Fragment>
+						) : (
+							<Fragment>
+								<Text style={MainScreenStyle.roastingItemWeightText}>
+									{formatUnitValue(production.greenBeanWeight, 'gram')} [G]
+								</Text>
+								<Text style={MainScreenStyle.roastingItemCreatedText}>
+									Started <TimeAgo date={production.createdAt} locale="en-US" />
+								</Text>
+							</Fragment>
+						)}
+					</View>
+				</View>
+				{!isLastItem && <Divider />}
+			</Fragment>
 		);
-	}
-
-	function onMoreStockHistoryPressed() {
-		Alert.alert('Complete stock history feature is coming soon!');
-	}
-
-	function onMoreRoastingHistoryPressed() {
-		Alert.alert('Complete roasting history feature is coming soon!');
 	}
 
 	const SupportedView: FC = () => (
 		<View>
 			{!refreshing && hasOngoingProduction() && (
-				<Card style={MainScreenStyle.productionStatusCard} status="info">
-					<Text style={MainScreenStyle.productionStatusText}>
-						Currently roasting {formatUnitValue(ongoingProduction.production.greenBeanWeight, 'gram')} of{' '}
-						{ongoingProduction.bean.name} bean
-					</Text>
-					<Text style={MainScreenStyle.productionFinishText}>
-						If you have finished the roasting process, please tap Finish. To cancel this roasting process,
-						please tap Cancel.
-					</Text>
-					<View style={MainScreenStyle.productionActionView}>
-						<Button
-							style={MainScreenStyle.productionCancelButton}
-							status="danger"
-							onPress={onCancelRoastingButtonPressed}>
-							Cancel
-						</Button>
-						<Button
-							style={MainScreenStyle.productionFinishButton}
-							status="success"
-							onPress={onFinishRoastingButtonPressed}>
-							Finish
-						</Button>
+				<Card
+					style={MainScreenStyle.productionStatusCard}
+					appearance="outline"
+					status="info"
+					onPress={onProductionStatusCardPressed}>
+					<View style={MainScreenStyle.productionStatusHeaderView}>
+						<Icon style={MainScreenStyle.productionStatusIcon} name="sync-outline" pack="ion" />
+						<View style={MainScreenStyle.productionStatusSideView}>
+							<Text style={MainScreenStyle.productionStatusCurrentlyRoastingText}>
+								Currently roasting
+							</Text>
+							<Text style={MainScreenStyle.productionStatusBeanNameText}>
+								{ongoingProduction?.bean?.name ?? ''}
+							</Text>
+							<Text style={MainScreenStyle.productionStatusBeanWeightText}>
+								{formatUnitValue(ongoingProduction?.production?.greenBeanWeight ?? 0, 'gram')} of green
+								bean
+							</Text>
+						</View>
+					</View>
+					<View style={MainScreenStyle.productionStatusFooterView}>
+						<Text style={MainScreenStyle.productionStatusCreatedText}>
+							Started <TimeAgo date={ongoingProduction?.production?.createdAt ?? new Date()} />
+						</Text>
+						<Text style={MainScreenStyle.productionViewProgressText}>View Progress ▶</Text>
 					</View>
 				</Card>
 			)}
 			<Card
 				style={MainScreenStyle.stockHistoryCard}
+				header={createCardHeader('Green Bean Stock History', 'green beans you have added to the inventory')}
+				appearance="outline"
 				status="primary"
-				header={createCardHeader('Stock History', 'list of beans you added to the inventory')}>
+				onPress={onStockHistoryCardPressed}>
 				{refreshing ? (
 					<ActivityIndicator />
 				) : inventoryList && inventoryList.length > 0 ? (
 					<Fragment>
-						{inventoryList.slice(0, 4).map((incoming: IncomingGreenBean, index) => (
-							<Text style={MainScreenStyle.stockText} key={index}>
-								Added {formatUnitValue(incoming.weightAdded, 'gram')} of{' '}
-								{getBeanById(incoming.beanId)?.name} bean.
-							</Text>
-						))}
-						{inventoryList.length > 5 && (
-							<Text style={MainScreenStyle.moreStockText} onPress={onMoreStockHistoryPressed}>
-								More stock history >
-							</Text>
-						)}
+						{inventoryList.slice(0, 4).map(renderIncomingItem)}
+						<Text style={MainScreenStyle.moreStockHistoryText}>More Stock History ▶</Text>
 					</Fragment>
 				) : (
-					<Text style={MainScreenStyle.stockText}>You have never added any beans to the inventory yet.</Text>
+					<Text style={MainScreenStyle.stockHistoryEmptyText}>
+						You have never added any green beans to the inventory yet.
+					</Text>
 				)}
 			</Card>
 			<Card
 				style={MainScreenStyle.roastingHistoryCard}
+				header={createCardHeader('Roasting History', 'green beans you have roasted')}
+				appearance="outline"
 				status="primary"
-				header={createCardHeader('Roasting History', 'list of beans you have roasted')}>
+				onPress={onRoastingHistoryCardPressed}>
 				{refreshing ? (
 					<ActivityIndicator />
 				) : productionList && productionList.length > 0 ? (
 					<Fragment>
-						{productionList.slice(0, 4).map((production: RoastedBeanProduction, index) => (
-							<Text style={MainScreenStyle.roastingText} key={index}>
-								{production.isFinalized
-									? '[FINISHED]'
-									: production.isCancelled
-									? '[CANCELLED]'
-									: '[ON PROGRESS]'}{' '}
-								Roasting of {formatUnitValue(production.greenBeanWeight, 'gram')} of{' '}
-								{getBeanById(production.beanId)?.name} bean.
-							</Text>
-						))}
-						{productionList.length > 5 && (
-							<Text style={MainScreenStyle.moreRoastingText} onPress={onMoreRoastingHistoryPressed}>
-								More roasting history >
-							</Text>
-						)}
+						{productionList.slice(0, 4).map(renderProductionItem)}
+						<Text style={MainScreenStyle.moreRoastingHistoryText}>More Roasting History ▶</Text>
 					</Fragment>
 				) : (
-					<Text style={MainScreenStyle.roastingText}>You have never roasted any beans yet.</Text>
+					<Text style={MainScreenStyle.roastingHistoryEmptyText}>
+						You have never roasted any green beans yet.
+					</Text>
+				)}
+			</Card>
+			<Card
+				style={MainScreenStyle.packagingHistoryCard}
+				header={createCardHeader('Packaging History', 'roasted beans you have packaged')}
+				appearance="outline"
+				status="primary"
+				onPress={() => {}}>
+				{refreshing ? (
+					<ActivityIndicator />
+				) : [].length > 0 ? (
+					<Fragment>
+						{[].slice(0, 4).map(renderProductionItem)}
+						<Text style={MainScreenStyle.morePackagingHistoryText}>More Packaging History ▶</Text>
+					</Fragment>
+				) : (
+					<Text style={MainScreenStyle.packagingHistoryEmptyText}>
+						You have never packaged any roasted beans yet.
+					</Text>
 				)}
 			</Card>
 		</View>
@@ -249,7 +297,10 @@ const MainScreen: FC = () => {
 					<RefreshControl refreshing={refreshing} onRefresh={onRefresh} title="Refreshing information..." />
 				}>
 				<View style={MainScreenStyle.headerView}>
-					<ApplicationLogoImage style={MainScreenStyle.appTitleImage} />
+					<View>
+						<ApplicationLogoImage style={MainScreenStyle.appTitleImage} />
+						<ProfilePicture size={50} />
+					</View>
 					<Text style={MainScreenStyle.greetingText} status="primary">
 						{greeting}
 					</Text>

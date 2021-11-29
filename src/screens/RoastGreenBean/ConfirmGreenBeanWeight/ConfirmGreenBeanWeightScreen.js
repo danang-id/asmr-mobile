@@ -22,7 +22,7 @@ type BeanInformationScreenProps = NativeStackScreenProps<
 >;
 
 const ConfirmGreenBeanWeightScreen: FC<BeanInformationScreenProps> = ({navigation, route}) => {
-	const {bean} = route.params;
+	const {bean}: Readonly<BeanInformationScreenParams> = route.params;
 	const {start: startProduction} = useProduction();
 
 	const [confirmed, setConfirmed] = useState(false);
@@ -37,6 +37,7 @@ const ConfirmGreenBeanWeightScreen: FC<BeanInformationScreenProps> = ({navigatio
 		if (!bean) {
 			Alert.alert('No Bean Information Provided', undefined, [
 				{
+					style: 'default',
 					text: 'OK',
 					onPress: () => {
 						navigation.goBack();
@@ -48,8 +49,20 @@ const ConfirmGreenBeanWeightScreen: FC<BeanInformationScreenProps> = ({navigatio
 
 	function onGreenBeanWeightStringEndEditing() {
 		const parsedValue = parseFloat(greenBeanWeightString);
-		const isValueAllowed = !isNaN(parsedValue) && parsedValue > 0;
-		setGreenBeanWeight(isValueAllowed ? parsedValue : 0);
+		if (isNaN(parsedValue)) {
+			setGreenBeanWeightString('0');
+			setGreenBeanWeight(0);
+			return;
+		}
+
+		if (parsedValue <= 0) {
+			setGreenBeanWeightString('0');
+			setGreenBeanWeight(0);
+			return;
+		}
+
+		setGreenBeanWeightString(parsedValue.toString(10));
+		setGreenBeanWeight(parsedValue);
 	}
 
 	function onRoastGreenBean() {
@@ -72,6 +85,7 @@ const ConfirmGreenBeanWeightScreen: FC<BeanInformationScreenProps> = ({navigatio
 					text: 'Cancel',
 				},
 				{
+					style: 'default',
 					text: 'Yes',
 					onPress: () => {
 						startProduction(bean.id, greenBeanWeight)
@@ -202,11 +216,15 @@ const ConfirmGreenBeanWeightScreen: FC<BeanInformationScreenProps> = ({navigatio
 						}}
 					/>
 
-					<Card style={ConfirmGreenBeanWeightScreenStyle.beanCard} header={createCardHeader(bean.name)}>
+					<Card
+						style={ConfirmGreenBeanWeightScreenStyle.beanCard}
+						header={createCardHeader(bean.name)}
+						appearance="filled"
+						status="primary">
 						<Text category="p1">{bean.description}</Text>
 					</Card>
 
-					<Card style={ConfirmGreenBeanWeightScreenStyle.confirmCard}>
+					<Card style={ConfirmGreenBeanWeightScreenStyle.confirmCard} appearance="filled">
 						<Input
 							style={ConfirmGreenBeanWeightScreenStyle.beanWeightInput}
 							value={greenBeanWeightString}
@@ -221,7 +239,9 @@ const ConfirmGreenBeanWeightScreen: FC<BeanInformationScreenProps> = ({navigatio
 						<Button
 							style={ConfirmGreenBeanWeightScreenStyle.roastGreenBeanButton}
 							onPress={onRoastGreenBean}>
-							Roast {formatUnitValue(greenBeanWeight, 'gram')} of Green Bean
+							{greenBeanWeight <= 0
+								? 'Roast Green Bean'
+								: `Roast ${formatUnitValue(greenBeanWeight, 'gram')} of Green Bean`}
 						</Button>
 					</Card>
 				</KeyboardAvoidingView>

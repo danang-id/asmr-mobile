@@ -139,6 +139,7 @@ const ScanGreenBeanQrCodeScreen: FC<ScanGreenBeanScreenProps> = ({navigation}) =
 				},
 			},
 			{
+				style: 'default',
 				text: 'Try Again',
 				onPress: onTryAgain,
 			},

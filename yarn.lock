@@ -2412,6 +2412,7 @@ __metadata:
     compare-versions: 4.1.1
     eslint: 7.32.0
     flow-bin: 0.165.1
+    javascript-time-ago: 2.3.10
     jest: ^27.3.1
     metro-react-native-babel-preset: ^0.66.2
     pod-install: ^0.1.28
@@ -2436,6 +2437,7 @@ __metadata:
     react-native-v8: 0.66.3-patch.1
     react-native-vector-icons: 9.0.0
     react-test-renderer: 17.0.2
+    react-time-ago: 7.1.3
     v8-android-jit-nointl: 9.93.0
   languageName: unknown
   linkType: soft
@@ -5488,6 +5490,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"javascript-time-ago@npm:2.3.10":
+  version: 2.3.10
+  resolution: "javascript-time-ago@npm:2.3.10"
+  dependencies:
+    relative-time-format: ^1.0.6
+  checksum: 73efe1d5939290abc4b627f9335bbbeee75da2bec4c43e095131750265af17c42a0d070549a6aec0de660cd4e732553a209400818a0c5ab8a5e6b1e99ca6c5cf
+  languageName: node
+  linkType: hard
+
 "jest-changed-files@npm:^27.3.0":
   version: 27.3.0
   resolution: "jest-changed-files@npm:27.3.0"
@@ -7725,6 +7736,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"performance-now@npm:^2.1.0":
+  version: 2.1.0
+  resolution: "performance-now@npm:2.1.0"
+  checksum: 534e641aa8f7cba160f0afec0599b6cecefbb516a2e837b512be0adbe6c1da5550e89c78059c7fabc5c9ffdf6627edabe23eb7c518c4500067a898fa65c2b550
+  languageName: node
+  linkType: hard
+
 "picocolors@npm:^1.0.0":
   version: 1.0.0
   resolution: "picocolors@npm:1.0.0"
@@ -7956,6 +7974,15 @@ __metadata:
   version: 1.2.3
   resolution: "queue-microtask@npm:1.2.3"
   checksum: b676f8c040cdc5b12723ad2f91414d267605b26419d5c821ff03befa817ddd10e238d22b25d604920340fd73efd8ba795465a0377c4adf45a4a41e4234e42dc4
+  languageName: node
+  linkType: hard
+
+"raf@npm:^3.4.1":
+  version: 3.4.1
+  resolution: "raf@npm:3.4.1"
+  dependencies:
+    performance-now: ^2.1.0
+  checksum: 50ba284e481c8185dbcf45fc4618ba3aec580bb50c9121385d5698cb6012fe516d2015b1df6dd407a7b7c58d44be8086108236affbce1861edd6b44637c8cd52
   languageName: node
   linkType: hard
 
@@ -8296,6 +8323,20 @@ __metadata:
   languageName: node
   linkType: hard
 
+"react-time-ago@npm:7.1.3":
+  version: 7.1.3
+  resolution: "react-time-ago@npm:7.1.3"
+  dependencies:
+    prop-types: ^15.7.2
+    raf: ^3.4.1
+  peerDependencies:
+    javascript-time-ago: ^2.3.7
+    react: ">=0.16.8"
+    react-dom: ">=0.16.8"
+  checksum: a447eddffbd9348e1a36b4bbc1c5e2044c36f3b764189a48e3ec0a25c8fa12b15df5c99e47ca308603e10ec0911af8c478927e26aa8a7c6eb167dcfa47634d82
+  languageName: node
+  linkType: hard
+
 "react@npm:17.0.2":
   version: 17.0.2
   resolution: "react@npm:17.0.2"
@@ -8439,6 +8480,13 @@ __metadata:
   bin:
     regjsparser: bin/parser
   checksum: fefff9adcab47650817d2c492aac774f11a44b824a4a814e466ebc76313e03e79c50d2babde7e04888296f6ec0fd094e3eeeafa8122c60184de92cdb30636a57
+  languageName: node
+  linkType: hard
+
+"relative-time-format@npm:^1.0.6":
+  version: 1.0.6
+  resolution: "relative-time-format@npm:1.0.6"
+  checksum: e79e872331420c12e9e78c2c29785069475d8f6ca24f021bdcb3689da864f0de8ac5a8d6488778439a973600b65d82823a32d710800c3cca95ab470465472c86
   languageName: node
   linkType: hard
 

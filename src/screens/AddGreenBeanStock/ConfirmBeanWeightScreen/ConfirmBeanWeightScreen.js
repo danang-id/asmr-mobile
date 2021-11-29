@@ -37,6 +37,7 @@ const ConfirmBeanWeightScreen: FC<BeanInformationScreenProps> = ({navigation, ro
 		if (!bean) {
 			Alert.alert('No Bean Information Provided', undefined, [
 				{
+					style: 'default',
 					text: 'OK',
 					onPress: () => {
 						navigation.goBack();
@@ -48,8 +49,20 @@ const ConfirmBeanWeightScreen: FC<BeanInformationScreenProps> = ({navigation, ro
 
 	function onGreenBeanWeightStringEndEditing() {
 		const parsedValue = parseFloat(greenBeanWeightString);
-		const isValueAllowed = !isNaN(parsedValue) && parsedValue > 0;
-		setGreenBeanWeight(isValueAllowed ? parsedValue : 0);
+		if (isNaN(parsedValue)) {
+			setGreenBeanWeightString('0');
+			setGreenBeanWeight(0);
+			return;
+		}
+
+		if (parsedValue <= 0) {
+			setGreenBeanWeightString('0');
+			setGreenBeanWeight(0);
+			return;
+		}
+
+		setGreenBeanWeightString(parsedValue.toString(10));
+		setGreenBeanWeight(parsedValue);
 	}
 
 	function onInputBeanToInventoryButtonPressed() {
@@ -67,7 +80,7 @@ const ConfirmBeanWeightScreen: FC<BeanInformationScreenProps> = ({navigation, ro
 			'Add Stock',
 			`Do you really want to add ${formatUnitValue(greenBeanWeight, 'gram')} of ${
 				bean.name
-			} bean to the inventory?`,
+			} (green bean) to the inventory?`,
 			[
 				{
 					style: 'destructive',
@@ -153,7 +166,7 @@ const ConfirmBeanWeightScreen: FC<BeanInformationScreenProps> = ({navigation, ro
 					</Text>
 					<Text style={ConfirmBeanWeightScreenStyle.resultDescriptionText} category="p1">
 						{succeed ? 'You have added' : 'Failed to add'} {formatUnitValue(greenBeanWeight, 'gram')} of{' '}
-						{bean.name} bean to the inventory.
+						{bean.name} (green bean) to the inventory.
 					</Text>
 					<View style={ConfirmBeanWeightScreenStyle.resultActionView}>
 						{succeed ? (
@@ -201,11 +214,15 @@ const ConfirmBeanWeightScreen: FC<BeanInformationScreenProps> = ({navigation, ro
 						}}
 					/>
 
-					<Card style={ConfirmBeanWeightScreenStyle.beanCard} header={createCardHeader(bean.name)}>
+					<Card
+						style={ConfirmBeanWeightScreenStyle.beanCard}
+						header={createCardHeader(bean.name)}
+						appearance="filled"
+						status="primary">
 						<Text category="p1">{bean.description}</Text>
 					</Card>
 
-					<Card style={ConfirmBeanWeightScreenStyle.confirmCard}>
+					<Card style={ConfirmBeanWeightScreenStyle.confirmCard} appearance="filled">
 						<Input
 							style={ConfirmBeanWeightScreenStyle.beanWeightInput}
 							value={greenBeanWeightString}
@@ -220,7 +237,9 @@ const ConfirmBeanWeightScreen: FC<BeanInformationScreenProps> = ({navigation, ro
 						<Button
 							style={ConfirmBeanWeightScreenStyle.addToInventoryButton}
 							onPress={onInputBeanToInventoryButtonPressed}>
-							Add {formatUnitValue(greenBeanWeight, 'gram')} to Inventory
+							{greenBeanWeight <= 0
+								? 'Add to Inventory'
+								: `Add ${formatUnitValue(greenBeanWeight, 'gram')} to Inventory`}
 						</Button>
 					</Card>
 				</KeyboardAvoidingView>

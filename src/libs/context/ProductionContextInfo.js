@@ -1,17 +1,17 @@
 import Bean from '../../core/entities/Bean';
-import RoastedBeanProduction from '../../core/entities/RoastedBeanProduction';
+import RoastingSession from '../../core/entities/RoastingSession';
 
 export type OngoingProductionInfo = {
 	bean: Bean,
-	production: RoastedBeanProduction,
+	production: RoastingSession,
 };
 
 export type ProductionContextInfo = {
-	list: RoastedBeanProduction[],
+	list: RoastingSession[],
 	ongoing?: OngoingProductionInfo,
 	hasOngoingProduction: () => boolean,
-	start: (beanId: string, greenBeanWeight: number) => Promise<RoastedBeanProduction | undefined>,
-	finalize: (roastedBeanWeight: number) => Promise<RoastedBeanProduction | undefined>,
-	cancel: () => Promise<RoastedBeanProduction | undefined>,
+	start: (beanId: string, greenBeanWeight: number) => Promise<RoastingSession | undefined>,
+	finish: (roastedBeanWeight: number) => Promise<RoastingSession | undefined>,
+	cancel: () => Promise<RoastingSession | undefined>,
 	refresh: () => Promise<void>,
 };

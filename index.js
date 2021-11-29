@@ -6,8 +6,14 @@ import {AppRegistry} from 'react-native';
 import {getApplicationName} from 'react-native-device-info';
 import {FileLogger as FileLogging} from 'react-native-file-logger';
 import Gleap from 'react-native-gleapsdk';
+import TimeAgo from 'javascript-time-ago';
+import en from 'javascript-time-ago/locale/en.json';
+import id from 'javascript-time-ago/locale/id.json';
 import {GLEAP_TOKEN} from '@env';
 import Application from './src/Application';
+
+TimeAgo.addDefaultLocale(en);
+TimeAgo.addLocale(id);
 
 AppRegistry.registerComponent(getApplicationName(), () => Application);
 

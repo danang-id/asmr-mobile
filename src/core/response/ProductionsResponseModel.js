@@ -1,4 +1,4 @@
 import ResponseModelBase from '../common/ResponseModelBase';
-import RoastedBeanProduction from '../entities/RoastedBeanProduction';
+import RoastingSession from '../entities/RoastingSession';
 
-export default class ProductionsResponseModel extends ResponseModelBase<RoastedBeanProduction[]> {}
+export default class ProductionsResponseModel extends ResponseModelBase<RoastingSession[]> {}

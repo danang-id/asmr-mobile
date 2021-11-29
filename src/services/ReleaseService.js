@@ -1,6 +1,7 @@
 import {CancelTokenSource} from 'axios';
 import ResponseModelBase from '../core/common/ResponseModelBase';
-import ASMRMobileReleaseInformation from '../core/releases/ASMRMobileReleaseInformation';
+import AndroidReleaseInformation from '../core/release/common/AndroidReleaseInformation';
+import iOSReleaseInformation from '../core/release/common/iOSReleaseInformation';
 import type {SetProgressInfo} from '../libs/context/ProgressContextInfo';
 import ServiceBase, {ServiceOptions} from './ServiceBase';
 
@@ -12,7 +13,7 @@ export default class ReleaseService extends ServiceBase {
 		super.tag = ReleaseService.name;
 	}
 
-	async getMobileReleaseInformation(): Promise<ResponseModelBase<ASMRMobileReleaseInformation>> {
+	async getMobileReleaseInformation(): Promise<ResponseModelBase<AndroidReleaseInformation | iOSReleaseInformation>> {
 		try {
 			this._start();
 			const response = await this.client.get(this.#servicePath + 'mobile');

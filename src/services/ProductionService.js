@@ -1,6 +1,6 @@
 import {CancelTokenSource} from 'axios';
 import StartProductionRequestModel from '../core/request/StartProductionRequestModel';
-import FinalizeProductionRequestModel from '../core/request/FinalizeProductionRequestModel';
+import FinishProductionRequestModel from '../core/request/FinalizeProductionRequestModel';
 import ProductionResponseModel from '../core/response/ProductionResponseModel';
 import ProductionsResponseModel from '../core/response/ProductionsResponseModel';
 import type {SetProgressInfo} from '../libs/context/ProgressContextInfo';
@@ -14,11 +14,11 @@ export default class ProductionService extends ServiceBase {
 		super.tag = ProductionService.name;
 	}
 
-	async getAll(showMine: boolean = true): Promise<ProductionsResponseModel> {
+	async getAll(showMine: boolean = true, showCancelled: boolean = true): Promise<ProductionsResponseModel> {
 		try {
 			this._start();
 			const response = await this.client.get(this.#servicePath, {
-				params: {showMine},
+				params: {showMine, showCancelled},
 			});
 			return this._processData(response);
 		} finally {
@@ -46,20 +46,22 @@ export default class ProductionService extends ServiceBase {
 		}
 	}
 
-	async finalize(id: string, body: FinalizeProductionRequestModel): Promise<ProductionResponseModel> {
+	async finish(id: string, body: FinishProductionRequestModel): Promise<ProductionResponseModel> {
 		try {
 			this._start();
-			const response = await this.client.post(this.#servicePath + 'finalize/' + id, body);
+			const response = await this.client.post(this.#servicePath + 'finish/' + id, body);
 			return this._processData(response);
 		} finally {
 			this._finalize();
 		}
 	}
 
-	async cancel(id: string): Promise<ProductionResponseModel> {
+	async cancel(id: string, isBeanBurnt: boolean): Promise<ProductionResponseModel> {
 		try {
 			this._start();
-			const response = await this.client.delete(this.#servicePath + 'cancel/' + id);
+			const response = await this.client.delete(this.#servicePath + 'cancel/' + id, {
+				params: {isBeanBurnt},
+			});
 			return this._processData(response);
 		} finally {
 			this._finalize();

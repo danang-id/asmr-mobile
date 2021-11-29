@@ -6,6 +6,8 @@ import useInit from '../hooks/InitHook';
 import useLogger from '../hooks/LoggerHook';
 import useServices from '../hooks/ServiceHook';
 import InventoryContext from './InventoryContext';
+import parseEntity from '../common/EntityParser';
+import EntityBase from '../../core/common/EntityBase';
 
 const InventoryProvider: FC = ({children}) => {
 	useInit(onInit);
@@ -36,7 +38,7 @@ const InventoryProvider: FC = ({children}) => {
 			const result = await incomingGreenBeanService.create(beanId, {weight});
 			if (result.isSuccess && result.data) {
 				await refresh();
-				return result.data;
+				return parseEntity(result.data);
 			}
 
 			if (result.errors) {
@@ -51,7 +53,7 @@ const InventoryProvider: FC = ({children}) => {
 		try {
 			const result = await beanService.getAll();
 			if (result.isSuccess && result.data) {
-				setBeanList(result.data);
+				setBeanList(result.data.map(parseEntity));
 			}
 
 			if (result.errors && Array.isArray(result.errors)) {
@@ -69,7 +71,7 @@ const InventoryProvider: FC = ({children}) => {
 		try {
 			const result = await incomingGreenBeanService.getAll(true);
 			if (result.isSuccess && result.data) {
-				setIncomingGreenBeanList(result.data);
+				setIncomingGreenBeanList(result.data.map(parseEntity).sort(sortList));
 			}
 
 			if (result.errors && Array.isArray(result.errors)) {
@@ -81,6 +83,10 @@ const InventoryProvider: FC = ({children}) => {
 		} catch (error) {
 			handleError(error, logger);
 		}
+	}
+
+	function sortList(a: EntityBase, b: EntityBase) {
+		return b.createdAt - a.createdAt;
 	}
 
 	return (

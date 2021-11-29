@@ -66,11 +66,12 @@ const ProfileScreen: FC = () => {
 	function onSignOutButtonPressed() {
 		Alert.alert('Sign Out', 'Are you sure you really want to sign out?', [
 			{
+				style: 'cancel',
 				text: 'Cancel',
 			},
 			{
-				text: 'Sign Out',
 				style: 'destructive',
+				text: 'Sign Out',
 				onPress: () => {
 					signOut().catch();
 				},
@@ -79,7 +80,12 @@ const ProfileScreen: FC = () => {
 	}
 
 	function onSignOutFailed(message: string) {
-		Alert.alert('Sign Out Failed', message, [{text: 'Try Again'}]);
+		Alert.alert('Sign Out Failed', message, [
+			{
+				style: 'default',
+				text: 'Try Again',
+			},
+		]);
 	}
 
 	async function openFeedbackCenter() {
@@ -162,19 +168,25 @@ const ProfileScreen: FC = () => {
 						</Text>
 					)}
 				</View>
-				<Card style={ProfileScreenStyle.usernameCard} header={createCardHeader('Username')}>
+				<Card style={ProfileScreenStyle.usernameCard} header={createCardHeader('Username')} appearance="filled">
 					<Text>{user.username}</Text>
 				</Card>
-				<Card style={ProfileScreenStyle.emailAddressCard} header={createCardHeader('Email Address')}>
+				<Card
+					style={ProfileScreenStyle.emailAddressCard}
+					header={createCardHeader('Email Address')}
+					appearance="filled">
 					<Text>{user.emailAddress}</Text>
 				</Card>
-				<Card style={ProfileScreenStyle.workRolesCard} header={createCardHeader('Work Roles')}>
+				<Card
+					style={ProfileScreenStyle.workRolesCard}
+					header={createCardHeader('Work Roles')}
+					appearance="filled">
 					{roles ? (
 						<Text>
-							Your {roleToBe} {roles}.
+							Your {roleToBe} {roles}
 						</Text>
 					) : (
-						<Text>Your roles have not been assigned.</Text>
+						<Text>Your roles have not been assigned</Text>
 					)}
 				</Card>
 				<View style={ProfileScreenStyle.actionView}>

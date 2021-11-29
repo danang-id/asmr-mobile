@@ -28,18 +28,18 @@ const CreateScreen: FC<CreateScreenProps> = ({navigation}) => {
 		if (hasOngoingProduction()) {
 			Alert.alert(
 				'Roasting on-progress',
-				`You are currently roasting ${ongoingProduction.bean.name} bean. ` +
+				`You are currently roasting ${ongoingProduction.bean.name} bean.\n\n` +
 					'Please wait until the current roasting process to finished before you roast another bean.',
 				[
 					{
 						style: 'default',
 						text: 'See Roasting Status',
 						onPress: () => {
-							navigation.navigate(DashboardRoutes.Main);
+							navigation.navigate(ScreenRoutes.RoastingProcess);
 						},
 					},
 					{
-						style: 'default',
+						style: 'cancel',
 						text: 'OK',
 					},
 				],

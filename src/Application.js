@@ -1,6 +1,6 @@
 import React, {useEffect, useState} from 'react';
 import {StatusBar, useColorScheme} from 'react-native';
-import {getApplicationName, getDeviceName} from 'react-native-device-info';
+import {getApplicationName, getBuildNumber, getDeviceName, getVersion} from 'react-native-device-info';
 import {ApplicationProvider as UIKittenProvider, IconRegistry} from '@ui-kitten/components';
 import * as eva from '@eva-design/eva';
 import Gleap from 'react-native-gleapsdk';
@@ -22,8 +22,11 @@ const isV8 = () => !!global._v8runtime;
  *		 so we will use both light theme on both color scheme.
  * */
 const Application: () => Node = () => {
-	useInit(onInit);
 	const applicationName = getApplicationName();
+	const buildNumber = getBuildNumber();
+	const version = getVersion();
+
+	useInit(onInit);
 	const checkUpdate = useUpdateChecker();
 	const colorScheme = useColorScheme();
 	const logger = useLogger(Application);
@@ -39,7 +42,7 @@ const Application: () => Node = () => {
 			engine = 'V8';
 		}
 		const deviceName = await getDeviceName();
-		logger.info(`${applicationName} is running on ${deviceName} using ${engine} engine`);
+		logger.info(`${applicationName} v${version}-${buildNumber} is running on ${deviceName} using ${engine} engine`);
 
 		if (GLEAP_TOKEN) {
 			logger.info('Gleap SDK initialized');

@@ -6,7 +6,7 @@ const ProductionContext: Context<ProductionContextInfo> = createContext({
 	ongoing: undefined,
 	hasOngoingProduction: () => false,
 	start: Promise.resolve(),
-	finalize: Promise.resolve(),
+	finish: Promise.resolve(),
 	cancel: Promise.resolve(),
 	refresh: Promise.resolve(),
 });

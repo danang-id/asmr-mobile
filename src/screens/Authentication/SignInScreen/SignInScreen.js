@@ -34,7 +34,12 @@ const SignInScreen: FC = () => {
 	}
 
 	function onSignInFailed(message: string) {
-		Alert.alert('Sign In Failed', message, [{text: 'Try Again'}]);
+		Alert.alert('Sign In Failed', message, [
+			{
+				style: 'default',
+				text: 'Try Again',
+			},
+		]);
 	}
 
 	async function signIn() {

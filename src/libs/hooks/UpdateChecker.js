@@ -1,37 +1,40 @@
 import {Alert, Linking, Platform} from 'react-native';
-import {getVersion} from 'react-native-device-info';
+import {getBuildNumber, getVersion} from 'react-native-device-info';
 import compareVersions from 'compare-versions';
 import useLogger from './LoggerHook';
 import useServices from './ServiceHook';
+import AndroidReleaseInformation from '../../core/release/common/AndroidReleaseInformation';
+import iOSReleaseInformation from '../../core/release/common/iOSReleaseInformation';
 
 function useUpdateChecker() {
 	const logger = useLogger('UpdateChecker');
 	const {handleError, handleErrors, release: releaseService} = useServices();
 	return async () => {
 		try {
+			const currentVersionCode = parseInt(getBuildNumber(), 10);
 			const currentVersion = getVersion();
 			const result = await releaseService.getMobileReleaseInformation();
 			if (result.isSuccess && result.data) {
-				let latestVersion: string | undefined;
+				const latestVersionCode = result.data.VersionCode;
+				const latestVersion = result.data.Version;
 				let updateLink: string | undefined;
 				if (Platform.OS === 'android') {
-					latestVersion = result.data.Android.Version;
-					if (result.data.Android.PlayStore.Available) {
-						updateLink = result.data.Android.PlayStore.Link;
-					} else if (result.data.Android.DirectDownload.Available) {
-						updateLink = result.data.Android.DirectDownload.Link;
+					const data: AndroidReleaseInformation = result.data;
+					if (data.PlayStore.Available) {
+						updateLink = data.PlayStore.Link;
+					} else if (data.DirectDownload.Available) {
+						updateLink = data.DirectDownload.Link;
 					}
 				} else if (Platform.OS === 'ios') {
-					latestVersion = result.data.iOS.Version;
-					if (result.data.iOS.AppStore.Available) {
-						updateLink = result.data.iOS.AppStore.Link;
-					} else if (result.data.iOS.DirectDownload.Available) {
-						updateLink = result.data.iOS.DirectDownload.Link;
+					const data: iOSReleaseInformation = result.data;
+					if (data.AppStore.Available) {
+						updateLink = data.AppStore.Link;
+					} else if (data.DirectDownload.Available) {
+						updateLink = data.DirectDownload.Link;
 					}
 				}
 
-				if (compareVersions(latestVersion, currentVersion) === 1 && !!updateLink) {
-					logger.info('Update Available', `current v${currentVersion}`, `latest v${latestVersion}`);
+				function askToUpdate() {
 					Alert.alert('Update Available', 'An update for asmr is available to download.', [
 						{
 							style: 'destructive',
@@ -56,6 +59,21 @@ function useUpdateChecker() {
 							},
 						},
 					]);
+				}
+
+				const hasUpdateLink = !!updateLink;
+				const hasHigherVersion = compareVersions(latestVersion, currentVersion) === 1;
+				const hasHigherVersionCode = !isNaN(currentVersionCode) && latestVersionCode > currentVersionCode;
+
+				if (hasUpdateLink) {
+					logger.info('Update available', `current v${currentVersion}`, `latest v${latestVersion}`);
+					if (hasHigherVersion) {
+						askToUpdate();
+					} else if (hasHigherVersionCode) {
+						askToUpdate();
+					}
+
+					return;
 				}
 
 				logger.info(`Using the latest version available: v${currentVersion}`);

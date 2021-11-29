@@ -12,7 +12,7 @@ const RoastGreenBeanNavigator: FC = () => {
 		<ProgressView>
 			<Stack.Navigator
 				initialRouteName={RoastGreenBeanRoutes.ScanGreenBeanQrCode}
-				screenOptions={{headerShown: true, headerTitle: 'Roast Green Bean'}}>
+				screenOptions={{headerShown: false, headerTitle: 'Roast Green Bean'}}>
 				<Stack.Screen name={RoastGreenBeanRoutes.ScanGreenBeanQrCode} component={ScanGreenBeanQrCodeScreen} />
 				<Stack.Screen
 					name={RoastGreenBeanRoutes.ConfirmGreenBeanWeight}

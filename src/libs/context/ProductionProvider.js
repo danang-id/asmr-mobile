@@ -1,10 +1,12 @@
 import React, {FC, useEffect, useState} from 'react';
+import parseEntity from '../common/EntityParser';
 import ErrorCode from '../../core/enums/ErrorCode';
-import RoastedBeanProduction from '../../core/entities/RoastedBeanProduction';
+import RoastingSession from '../../core/entities/RoastingSession';
 import useInit from '../hooks/InitHook';
 import useLogger from '../hooks/LoggerHook';
 import useServices from '../hooks/ServiceHook';
 import ProductionContext from './ProductionContext';
+import EntityBase from '../../core/common/EntityBase';
 
 const ProductionProvider: FC = ({children}) => {
 	useInit(onInit);
@@ -21,7 +23,7 @@ const ProductionProvider: FC = ({children}) => {
 	}
 
 	function onMyProductionChanged() {
-		const ongoingProductionFilter = (p: RoastedBeanProduction) => !p.isFinalized && !p.isCancelled;
+		const ongoingProductionFilter = (r: RoastingSession) => !r.cancelledAt && !r.finishedAt;
 		const ongoingProductions = (productionList || []).filter(ongoingProductionFilter);
 		if (ongoingProductions.length >= 1) {
 			setOngoingProduction(ongoingProductions[0]);
@@ -55,15 +57,15 @@ const ProductionProvider: FC = ({children}) => {
 		return !!ongoing && !!ongoingBean && !!ongoingProduction;
 	}
 
-	function start(beanId: string, greenBeanWeight: number): Promise<RoastedBeanProduction | undefined> {
+	function start(beanId: string, greenBeanWeight: number): Promise<RoastingSession | undefined> {
 		return startProduction(beanId, greenBeanWeight);
 	}
 
-	function finalize(roastedBeanWeight: number): Promise<RoastedBeanProduction | undefined> {
-		return finalizeProduction(roastedBeanWeight);
+	function finalize(roastedBeanWeight: number): Promise<RoastingSession | undefined> {
+		return finishProduction(roastedBeanWeight);
 	}
 
-	function cancel(): Promise<RoastedBeanProduction | undefined> {
+	function cancel(): Promise<RoastingSession | undefined> {
 		return cancelProduction();
 	}
 
@@ -76,7 +78,7 @@ const ProductionProvider: FC = ({children}) => {
 			const result = await productionService.start({beanId, greenBeanWeight});
 			if (result.isSuccess && result.data) {
 				await refresh();
-				return result.data;
+				return parseEntity(result.data);
 			}
 
 			if (result.errors) {
@@ -87,18 +89,18 @@ const ProductionProvider: FC = ({children}) => {
 		}
 	}
 
-	async function finalizeProduction(roastedBeanWeight: number) {
+	async function finishProduction(roastedBeanWeight: number) {
 		if (!ongoingProduction) {
 			return;
 		}
 
 		try {
-			const result = await productionService.finalize(ongoingProduction.id, {
+			const result = await productionService.finish(ongoingProduction.id, {
 				roastedBeanWeight,
 			});
 			if (result.isSuccess && result.data) {
 				await refresh();
-				return result.data;
+				return parseEntity(result.data);
 			}
 
 			if (result.errors) {
@@ -109,13 +111,13 @@ const ProductionProvider: FC = ({children}) => {
 		}
 	}
 
-	async function cancelProduction() {
+	async function cancelProduction(isBeanBurnt: boolean = false) {
 		if (!ongoingProduction) {
 			return;
 		}
 
 		try {
-			const result = await productionService.cancel(ongoingProduction.id);
+			const result = await productionService.cancel(ongoingProduction.id, isBeanBurnt);
 			if (result.isSuccess && result.data) {
 				await refresh();
 				return result.data;
@@ -131,9 +133,9 @@ const ProductionProvider: FC = ({children}) => {
 
 	async function getMyProductions() {
 		try {
-			const result = await productionService.getAll(true);
+			const result = await productionService.getAll(true, true);
 			if (result.isSuccess && result.data) {
-				setProductionList(result.data.filter((p: RoastedBeanProduction) => p.isCancelled === false));
+				setProductionList(result.data.map(parseEntity).sort(sortList));
 			}
 
 			if (result.errors && Array.isArray(result.errors)) {
@@ -151,7 +153,7 @@ const ProductionProvider: FC = ({children}) => {
 		try {
 			const result = await beanService.getById(beanId);
 			if (result.isSuccess && result.data) {
-				setOngoingBean(result.data);
+				setOngoingBean(parseEntity(result.data));
 				return;
 			}
 
@@ -163,13 +165,17 @@ const ProductionProvider: FC = ({children}) => {
 		}
 	}
 
+	function sortList(a: EntityBase, b: EntityBase) {
+		return b.createdAt - a.createdAt;
+	}
+
 	useEffect(onMyProductionChanged, [productionList]);
 	useEffect(onOngoingProductionChanged, [ongoingProduction]);
 	useEffect(onOngoingBeanChanged, [ongoingBean]);
 
 	return (
 		<ProductionContext.Provider
-			value={{list: productionList, ongoing, hasOngoingProduction, start, finalize, cancel, refresh}}>
+			value={{list: productionList, ongoing, hasOngoingProduction, start, finish: finalize, cancel, refresh}}>
 			{children}
 		</ProductionContext.Provider>
 	);
