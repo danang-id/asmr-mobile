@@ -2,15 +2,19 @@
  * @format
  */
 
+import {GLEAP_TOKEN} from '@env';
+import TimeAgo from 'javascript-time-ago';
+import en from 'javascript-time-ago/locale/en.json';
+import id from 'javascript-time-ago/locale/id.json';
 import {AppRegistry} from 'react-native';
 import {getApplicationName} from 'react-native-device-info';
 import {FileLogger as FileLogging} from 'react-native-file-logger';
 import Gleap from 'react-native-gleapsdk';
-import TimeAgo from 'javascript-time-ago';
-import en from 'javascript-time-ago/locale/en.json';
-import id from 'javascript-time-ago/locale/id.json';
-import {GLEAP_TOKEN} from '@env';
-import Application from './src/Application';
+import Application from 'asmr/Application';
+
+if (!GLEAP_TOKEN) {
+	throw new Error('Please specify "GLEAP_TOKEN" environment variable.');
+}
 
 TimeAgo.addDefaultLocale(en);
 TimeAgo.addLocale(id);
