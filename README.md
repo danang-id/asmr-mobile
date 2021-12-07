@@ -14,7 +14,7 @@
 <h3 align="center">asmr</h3>
 
   <p align="center">
-    A simple Coffee Beans management solution on mobile!
+    A simple Coffee Beans management solution, now on mobile!
   </p>
 </div>
 
