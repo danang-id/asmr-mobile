@@ -1,14 +1,12 @@
-import {CancelTokenSource} from 'axios';
-import {SetProgressInfo} from 'asmr/context/ProgressContextInfo';
 import SignInRequestModel from 'asmr/core/request/SignInRequestModel';
 import AuthenticationResponseModel from 'asmr/core/response/AuthenticationResponseModel';
-import ServiceBase, {ServiceOptions} from 'asmr/services/ServiceBase';
+import ServiceBase, {ServiceParameters} from 'asmr/services/ServiceBase';
 
 class GateService extends ServiceBase {
-	private servicePath = '/api/Gate/';
+	private servicePath = '/api/gate/';
 
-	constructor(cancelTokenSource: CancelTokenSource, setProgress: SetProgressInfo, options?: ServiceOptions) {
-		super(cancelTokenSource, setProgress, options);
+	constructor(parameters: ServiceParameters) {
+		super(parameters);
 		super.tag = GateService.name;
 	}
 
@@ -16,7 +14,7 @@ class GateService extends ServiceBase {
 		try {
 			this.prepare();
 			const response = await this.client.post(this.servicePath + 'authenticate', body);
-			return this.processData(response);
+			return this.extract(response);
 		} finally {
 			this.finalize();
 		}
@@ -26,7 +24,7 @@ class GateService extends ServiceBase {
 		try {
 			this.prepare();
 			const response = await this.client.post(this.servicePath + 'exit');
-			return this.processData(response);
+			return this.extract(response);
 		} finally {
 			this.finalize();
 		}
@@ -36,7 +34,7 @@ class GateService extends ServiceBase {
 		try {
 			this.prepare();
 			const response = await this.client.get(this.servicePath + 'passport');
-			return this.processData(response);
+			return this.extract(response);
 		} finally {
 			this.finalize();
 		}

@@ -1,50 +1,68 @@
-import {Text} from '@ui-kitten/components';
-import {RenderProp} from '@ui-kitten/components/devsupport';
-import React, {FC} from 'react';
-import {Platform, StyleSheet, View, ViewProps} from 'react-native';
+import {Icon, Text, Tooltip} from '@ui-kitten/components';
+import React, {FC, memo, useState} from 'react';
+import {Dimensions, StyleSheet, TouchableOpacity, View, ViewProps} from 'react-native';
 
 export interface CardHeaderProps extends ViewProps {
 	title: string;
-	subtitle?: string;
+	information?: string;
 }
 
-const CardHeader: FC<CardHeaderProps> = ({title, subtitle, ...props}) => {
-	let style = StyleSheet.create({
-		title: {},
-		subtitle: {},
-	});
+const CardHeader: FC<CardHeaderProps> = props => {
+	const {title, information, style, ...rest} = props;
 
-	if (Platform.OS === 'android') {
-		style = StyleSheet.create({
-			title: {},
-			subtitle: {
-				fontSize: 14,
-				fontWeight: '700',
-			},
-		});
-	} else if (Platform.OS === 'ios') {
-		style = StyleSheet.create({
-			title: {},
-			subtitle: {},
-		});
+	const [tooltipShown, setTooltipShown] = useState<boolean>(false);
+
+	function onInformationIconPressed() {
+		setTooltipShown(true);
+	}
+
+	function onTooltipBackdropPressed() {
+		setTooltipShown(false);
+	}
+
+	function renderInformationIcon() {
+		return (
+			<TouchableOpacity onPress={onInformationIconPressed}>
+				<Icon style={styles.informationIcon} name="information-circle-outline" pack="ion" />
+			</TouchableOpacity>
+		);
 	}
 
 	return (
-		<View {...props}>
-			<Text style={style.title} category="h6" status="primary">
+		<View style={[style, styles.container]} {...rest}>
+			<Text style={styles.title} category="h6" status="primary">
 				{title}
 			</Text>
-			{!!subtitle && (
-				<Text style={style.subtitle} category="s1">
-					{subtitle}
-				</Text>
+			{!!information && (
+				<Tooltip
+					style={styles.tooltip}
+					anchor={renderInformationIcon}
+					placement="left end"
+					visible={tooltipShown}
+					onBackdropPress={onTooltipBackdropPressed}>
+					<Text style={styles.tooltipText}>{information}</Text>
+				</Tooltip>
 			)}
 		</View>
 	);
 };
 
-export function createCardHeader(title: string, subtitle?: string): RenderProp<ViewProps> {
-	return <CardHeader title={title} subtitle={subtitle} />;
-}
+const styles = StyleSheet.create({
+	container: {
+		flexDirection: 'row',
+		alignContent: 'center',
+		justifyContent: 'space-between',
+	},
+	title: {},
+	informationIcon: {
+		height: 18,
+		width: 20,
+	},
 
-export default CardHeader;
+	tooltip: {
+		width: Dimensions.get('window').width - 100,
+	},
+	tooltipText: {},
+});
+
+export default memo(CardHeader);

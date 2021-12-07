@@ -5,24 +5,23 @@ import EntityBase from 'asmr/core/common/EntityBase';
 import Bean from 'asmr/core/entities/Bean';
 import Roasting from 'asmr/core/entities/Roasting';
 import ErrorCode from 'asmr/core/enums/ErrorCode';
-import {useInitAsync} from 'asmr/hooks/InitHook';
-import useLogger from 'asmr/hooks/LoggerHook';
-import useServices from 'asmr/hooks/ServiceHook';
-import {parseEntity} from 'asmr/libs/common/EntityHelper';
+import useLogger from 'asmr/hooks/logger.hook';
+import usePersistedState from 'asmr/hooks/persisted-state.hook';
+import useServices from 'asmr/hooks/service.hook';
 
 const ProductionProvider: FC = ({children}) => {
-	useInitAsync(onInitAsync);
 	const logger = useLogger(ProductionProvider);
-	const {handleError, handleErrors, bean: beanService, production: productionService} = useServices();
+	const {
+		handleError,
+		handleErrors,
+		bean: beanService,
+		production: productionService,
+	} = useServices(ProductionProvider);
 
 	const [ongoingBean, setOngoingBean] = useState<Bean | undefined>();
 	const [ongoingProduction, setOngoingProduction] = useState<Roasting | undefined>();
 	const [ongoing, setOngoing] = useState<OngoingProductionInfo | undefined>();
-	const [productionList, setProductionList] = useState<Roasting[]>([]);
-
-	function onInitAsync(): Promise<void> {
-		return refresh();
-	}
+	const [productionList, setProductionList] = usePersistedState<Roasting[]>('ROASTINGS', []);
 
 	function onMyProductionChanged() {
 		const ongoingProductionFilter = (r: Roasting) => !r.cancelledAt && !r.finishedAt;
@@ -63,24 +62,27 @@ const ProductionProvider: FC = ({children}) => {
 		return startProduction(beanId, greenBeanWeight);
 	}
 
-	function finalize(roastedBeanWeight: number): Promise<Roasting | undefined> {
+	function finish(roastedBeanWeight: number): Promise<Roasting | undefined> {
 		return finishProduction(roastedBeanWeight);
 	}
 
-	function cancel(): Promise<Roasting | undefined> {
-		return cancelProduction();
+	function cancel(isBeanBurnt = false): Promise<Roasting | undefined> {
+		return cancelProduction(isBeanBurnt);
 	}
 
 	function refresh(): Promise<void> {
+		logger.info('Data refresh requested');
 		return getMyProductions();
 	}
 
 	async function startProduction(beanId: string, greenBeanWeight: number) {
+		logger.info('Start production requested');
+
 		try {
 			const result = await productionService.start({beanId, greenBeanWeight});
 			if (result.isSuccess && result.data) {
 				await refresh();
-				return parseEntity(result.data);
+				return result.data;
 			}
 
 			if (result.errors) {
@@ -96,13 +98,15 @@ const ProductionProvider: FC = ({children}) => {
 			return;
 		}
 
+		logger.info('Finish production requested');
+
 		try {
 			const result = await productionService.finish(ongoingProduction.id, {
 				roastedBeanWeight,
 			});
 			if (result.isSuccess && result.data) {
 				await refresh();
-				return parseEntity(result.data);
+				return result.data;
 			}
 
 			if (result.errors) {
@@ -117,6 +121,8 @@ const ProductionProvider: FC = ({children}) => {
 		if (!ongoingProduction) {
 			return;
 		}
+
+		logger.info('Cancel production requested');
 
 		try {
 			const result = await productionService.cancel(ongoingProduction.id, isBeanBurnt);
@@ -137,7 +143,7 @@ const ProductionProvider: FC = ({children}) => {
 		try {
 			const result = await productionService.getAll(true, true);
 			if (result.isSuccess && result.data) {
-				setProductionList(result.data.map(parseEntity).sort(sortList));
+				setProductionList(result.data.sort(sortList));
 			}
 
 			if (result.errors && Array.isArray(result.errors)) {
@@ -155,7 +161,7 @@ const ProductionProvider: FC = ({children}) => {
 		try {
 			const result = await beanService.getById(beanId);
 			if (result.isSuccess && result.data) {
-				setOngoingBean(parseEntity(result.data));
+				setOngoingBean(result.data);
 				return;
 			}
 
@@ -177,7 +183,15 @@ const ProductionProvider: FC = ({children}) => {
 
 	return (
 		<ProductionContext.Provider
-			value={{list: productionList, ongoing, hasOngoingProduction, start, finish: finalize, cancel, refresh}}>
+			value={{
+				list: productionList ?? [],
+				ongoing,
+				hasOngoingProduction,
+				start,
+				finish,
+				cancel,
+				refresh,
+			}}>
 			{children}
 		</ProductionContext.Provider>
 	);

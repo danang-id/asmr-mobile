@@ -1,17 +1,17 @@
 import {Button, Card, Icon, Input} from '@ui-kitten/components';
 import {RenderProp} from '@ui-kitten/components/devsupport';
 import React, {FC, useRef, useState} from 'react';
-import {Alert, ImageProps, KeyboardAvoidingView, SafeAreaView, TouchableOpacity, View} from 'react-native';
+import {ImageProps, KeyboardAvoidingView, SafeAreaView, TouchableOpacity, View} from 'react-native';
 import SpinnerOverlay from 'react-native-loading-spinner-overlay';
 import ApplicationLogoImage from 'asmr/components/ApplicationLogoImage';
-import ErrorCode from 'asmr/core/enums/ErrorCode';
-import useAuthentication from 'asmr/hooks/AuthenticationHook';
-import useLogger from 'asmr/hooks/LoggerHook';
+import useAuthentication from 'asmr/hooks/authentication.hook';
+import useMounted from 'asmr/hooks/mounted.hook';
+import applicationColors from 'asmr/styles/colors';
 import SignInScreenStyle from './SignInScreen.style';
 
 const SignInScreen: FC = () => {
-	const authentication = useAuthentication();
-	const logger = useLogger(SignInScreen);
+	const mounted = useMounted(SignInScreen);
+	const {signIn} = useAuthentication();
 
 	const [isSigningIn, setIsSigningIn] = useState<boolean>(false);
 	const [username, setUsername] = useState<string>('');
@@ -33,44 +33,15 @@ const SignInScreen: FC = () => {
 	}
 
 	function onSignInPressed() {
-		signIn().catch();
-	}
+		setIsSigningIn(true);
 
-	function onSignInFailed(message: string) {
-		Alert.alert('Sign In Failed', message, [
-			{
-				style: 'default',
-				text: 'Try Again',
-			},
-		]);
-	}
-
-	async function signIn() {
-		if (isSigningIn) {
-			return;
-		}
-
-		try {
-			setIsSigningIn(true);
-			const result = await authentication.signIn(username, password);
-			if (result.errors && result.errors[0]) {
-				const firstError = result.errors[0];
-				const haveAccountProblem =
-					firstError.code === ErrorCode.EmailAddressWaitingConfirmation ||
-					firstError.code === ErrorCode.AccountWaitingForApproval ||
-					firstError.code === ErrorCode.AccountWasNotApproved;
-				if (haveAccountProblem) {
-					onSignInFailed(firstError.reason);
-					return;
+		signIn(username, password)
+			.catch()
+			.finally(() => {
+				if (mounted) {
+					setIsSigningIn(false);
 				}
-
-				authentication.handleErrors(result.errors, logger);
-				setIsSigningIn(false);
-			}
-		} catch (error) {
-			authentication.handleError(error as Error, logger);
-			setIsSigningIn(false);
-		}
+			});
 	}
 
 	const renderAccessoryRight: RenderProp<Partial<ImageProps>> = props => (
@@ -84,13 +55,13 @@ const SignInScreen: FC = () => {
 			<SpinnerOverlay
 				visible={isSigningIn}
 				animation="fade"
-				overlayColor="rgba(67,45,39,200)"
+				overlayColor={applicationColors.primary}
 				textContent="Signing you in..."
 				textStyle={SignInScreenStyle.spinnerOverlayText}
 			/>
-			<KeyboardAvoidingView style={SignInScreenStyle.keyboardAvoidingView} behavior="padding">
+			<KeyboardAvoidingView style={SignInScreenStyle.keyboardAvoidingView} behavior="height">
 				<View style={SignInScreenStyle.headerLayout}>
-					<ApplicationLogoImage style={SignInScreenStyle.appTitleImage} />
+					<ApplicationLogoImage style={SignInScreenStyle.applicationLogoImage} />
 				</View>
 				<Card style={SignInScreenStyle.signInCard} status="primary">
 					<Input

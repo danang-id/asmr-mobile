@@ -1,11 +1,12 @@
 import {BottomTabScreenProps} from '@react-navigation/bottom-tabs';
 import {Button, Text} from '@ui-kitten/components';
 import React, {FC} from 'react';
-import {Alert, SafeAreaView, View} from 'react-native';
+import {Alert} from 'react-native';
 
-import ApplicationLogoImage from 'asmr/components/ApplicationLogoImage';
-import {useInitAsync} from 'asmr/hooks/InitHook';
-import useProduction from 'asmr/hooks/ProductionHook';
+import useMounted from 'asmr/hooks/mounted.hook';
+import useProduction from 'asmr/hooks/production.hook';
+import useRefresh from 'asmr/hooks/refresh.hook';
+import DashboardLayout from 'asmr/layouts/DashboardLayout';
 import {DashboardParamList} from 'asmr/screens/Dashboard/DashboardNavigator';
 import DashboardRoutes from 'asmr/screens/Dashboard/DashboardRoutes';
 import ScreenRoutes from 'asmr/screens/ScreenRoutes';
@@ -13,15 +14,12 @@ import CreateScreenStyle from './CreateScreen.style';
 
 type CreateScreenProps = BottomTabScreenProps<DashboardParamList, DashboardRoutes.Create>;
 const CreateScreen: FC<CreateScreenProps> = ({navigation}) => {
-	useInitAsync(onInitAsync);
+	const mounted = useMounted(CreateScreen);
 	const {ongoing: ongoingProduction, hasOngoingProduction, refresh: refreshProduction} = useProduction();
-
-	async function onInitAsync(): Promise<void> {
-		await refreshProduction();
-	}
+	useRefresh([refreshProduction]);
 
 	function onAddGreenBeanStockButtonPressed() {
-		navigation.navigate(ScreenRoutes.AddGreenBeanStock);
+		navigation.navigate(ScreenRoutes.Stock);
 	}
 
 	function onRoastGreenBeanButtonPressed() {
@@ -35,7 +33,7 @@ const CreateScreen: FC<CreateScreenProps> = ({navigation}) => {
 						style: 'default',
 						text: 'See Roasting Status',
 						onPress: () => {
-							navigation.navigate(ScreenRoutes.RoastingProcess);
+							navigation.navigate(ScreenRoutes.Roasting);
 						},
 					},
 					{
@@ -47,34 +45,37 @@ const CreateScreen: FC<CreateScreenProps> = ({navigation}) => {
 			return;
 		}
 
-		navigation.navigate(ScreenRoutes.RoastGreenBean);
+		navigation.navigate(ScreenRoutes.Roast);
+	}
+
+	function onPackageRoastedBeanButtonPressed() {
+		navigation.navigate(ScreenRoutes.Packaging);
 	}
 
 	return (
-		<SafeAreaView style={CreateScreenStyle.container}>
-			<View style={CreateScreenStyle.contentView}>
-				<View style={CreateScreenStyle.headerView}>
-					<ApplicationLogoImage style={CreateScreenStyle.appTitleImage} />
-				</View>
-				<View style={CreateScreenStyle.createView}>
-					<Text style={CreateScreenStyle.createQuestionText}>What would you like to do?</Text>
-					<Button
-						style={CreateScreenStyle.addGreenBeanStockButton}
-						onPress={onAddGreenBeanStockButtonPressed}
-						size="large">
-						Add Green Bean Stock
-					</Button>
-					<Button
-						style={CreateScreenStyle.roastGreenBeanButton}
-						onPress={onRoastGreenBeanButtonPressed}
-						appearance={hasOngoingProduction() ? 'outline' : 'filled'}
-						status={hasOngoingProduction() ? 'basic' : 'primary'}
-						size="large">
-						Roast Green Bean
-					</Button>
-				</View>
-			</View>
-		</SafeAreaView>
+		<DashboardLayout header={{showBorder: true}} contentContainerStyle={CreateScreenStyle.contentContainer}>
+			<Text style={CreateScreenStyle.createQuestionText}>What would you like to do today?</Text>
+			<Button
+				style={CreateScreenStyle.addGreenBeanStockButton}
+				onPress={onAddGreenBeanStockButtonPressed}
+				size="large">
+				Add Green Bean Stock
+			</Button>
+			<Button
+				style={CreateScreenStyle.roastGreenBeanButton}
+				onPress={onRoastGreenBeanButtonPressed}
+				appearance={hasOngoingProduction() ? 'outline' : 'filled'}
+				status={hasOngoingProduction() ? 'basic' : 'primary'}
+				size="large">
+				Roast Green Bean
+			</Button>
+			<Button
+				style={CreateScreenStyle.packageRoastedBeanButton}
+				onPress={onPackageRoastedBeanButtonPressed}
+				size="large">
+				Package Roasted Bean
+			</Button>
+		</DashboardLayout>
 	);
 };
 

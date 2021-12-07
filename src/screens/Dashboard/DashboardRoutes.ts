@@ -1,7 +1,7 @@
 enum DashboardRoutes {
-	Main = 'Main',
+	Home = 'Home',
 	Create = 'Create',
-	Profile = 'Profile',
+	BeanList = 'BeanList',
 }
 
 export default DashboardRoutes;

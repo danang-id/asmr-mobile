@@ -2,20 +2,19 @@
 	"compilerOptions": {
 		"allowJs": true,
 		"allowSyntheticDefaultImports": true,
-		"baseUrl": "./",
+		"baseUrl": ".",
 		"esModuleInterop": true,
 		"isolatedModules": true,
 		"jsx": "react-native",
 		"lib": ["es2017"],
+		"module": "es2020",
 		"moduleResolution": "node",
 		"noEmit": true,
 		"paths": {
-			"asmr": ["./src/"],
-			"asmr/*": ["./src/*"],
-			"asmr-assets": ["./assets/"],
-			"asmr-assets/*": ["./assets/*"],
-			"asmr-mobile": ["./"],
-			"asmr-mobile/*": ["./*"]
+			"asmr/*": ["src/*"],
+			"asmr-assets/*": ["assets/*"],
+			"asmr-mobile/*": ["./*"],
+			"asmr-tests/*": ["__tests__/*"]
 		},
 		"strict": true,
 		"target": "esnext",

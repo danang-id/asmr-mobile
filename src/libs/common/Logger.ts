@@ -28,13 +28,13 @@ function formatFile(tag: string, ...args: string[]) {
 export const FileLogger: ILoggerWithTag = (function () {
 	const logger: ILoggerWithTag = {
 		error(tag, ...args) {
-			FileLogging.write(LogLevel.Error, formatFile(tag, ...(args as string[])));
+			FileLogging.write(LogLevel.Error, formatFile(tag, ...(args as Iterable<string>)));
 		},
 		info(tag, ...args) {
-			FileLogging.write(LogLevel.Info, formatFile(tag, ...(args as string[])));
+			FileLogging.write(LogLevel.Info, formatFile(tag, ...(args as Iterable<string>)));
 		},
 		warn(tag, ...args) {
-			FileLogging.write(LogLevel.Warning, formatFile(tag, ...(args as string[])));
+			FileLogging.write(LogLevel.Warning, formatFile(tag, ...(args as Iterable<string>)));
 		},
 	};
 	return logger;
@@ -46,16 +46,16 @@ export const ConsoleLogger: ILoggerWithTag = (function () {
 
 	const logger: ILoggerWithTag = {
 		error(tag, ...args) {
-			FileLogging.write(LogLevel.Error, formatFile(tag, ...(args as string[])));
-			console.error(formatConsole(deviceName, tag, ...(args as string[])));
+			FileLogging.write(LogLevel.Error, formatFile(tag, ...(args as Iterable<string>)));
+			console.error(formatConsole(deviceName, tag, ...(args as Iterable<string>)));
 		},
 		info(tag, ...args) {
-			FileLogging.write(LogLevel.Info, formatFile(tag, ...(args as string[])));
-			console.info(formatConsole(deviceName, tag, ...(args as string[])));
+			FileLogging.write(LogLevel.Info, formatFile(tag, ...(args as Iterable<string>)));
+			console.info(formatConsole(deviceName, tag, ...(args as Iterable<string>)));
 		},
 		warn(tag, ...args) {
-			FileLogging.write(LogLevel.Warning, formatFile(tag, ...(args as string[])));
-			console.warn(formatConsole(deviceName, tag, ...(args as string[])));
+			FileLogging.write(LogLevel.Warning, formatFile(tag, ...(args as Iterable<string>)));
+			console.warn(formatConsole(deviceName, tag, ...(args as Iterable<string>)));
 		},
 	};
 	return logger;

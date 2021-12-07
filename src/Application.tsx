@@ -2,20 +2,21 @@ import {GLEAP_TOKEN} from '@env';
 import * as eva from '@eva-design/eva';
 import {ApplicationProvider as UIKittenProvider, IconRegistry} from '@ui-kitten/components';
 import React, {ReactElement, useEffect, useState} from 'react';
-import {StatusBar, useColorScheme} from 'react-native';
+import {AppStateStatus, Platform, StatusBar, useColorScheme} from 'react-native';
+import useAppState from 'react-native-appstate-hook';
 import {getApplicationName, getBuildNumber, getDeviceName, getVersion} from 'react-native-device-info';
 import Gleap from 'react-native-gleapsdk';
+import {focusManager, setLogger} from 'react-query';
 import ApplicationProvider from 'asmr/components/ApplicationProvider';
 import {IonIconsPack} from 'asmr/components/IonIcons';
 import {MaterialIconsPack} from 'asmr/components/MaterialIcons';
-import {useInitAsync} from 'asmr/hooks/InitHook';
-import useLogger from 'asmr/hooks/LoggerHook';
-import useUpdateChecker from 'asmr/hooks/UpdateChecker';
+import useLogger from 'asmr/hooks/logger.hook';
+import useUpdateChecker from 'asmr/hooks/update-checker.hook';
 import ScreenNavigator from 'asmr/screens/ScreenNavigator';
 import {applicationLightTheme} from 'asmr/styles/theme';
 
 const usingHermes = typeof HermesInternal === 'object' && HermesInternal !== null;
-const usingV8 = !!_v8runtime;
+const usingV8 = typeof _v8runtime === 'object' && _v8runtime !== null;
 /*
  * TODO: Dark mode does not work very well with our current theming,
  *		 so we will use both light theme on both color scheme.
@@ -25,29 +26,38 @@ const Application: () => ReactElement = () => {
 	const buildNumber = getBuildNumber();
 	const version = getVersion();
 
-	useInitAsync(onInitAsync);
+	useAppState({onChange: onAppStateChange});
 	const checkUpdate = useUpdateChecker();
 	const colorScheme = useColorScheme();
 	const logger = useLogger(Application);
+
 	// TODO: Fix dark mode
 	// const [theme, setTheme] = useState(colorScheme === 'dark' ? applicationDarkTheme : applicationLightTheme);
 	const [theme, setTheme] = useState(applicationLightTheme);
 
-	async function onInitAsync(): Promise<void> {
+	const reactQueryLogger = useLogger('ReactQuery');
+	// eslint-disable-next-line @typescript-eslint/no-empty-function
+	setLogger({error: () => {}, log: reactQueryLogger.info, warn: reactQueryLogger.warn});
+
+	function onInitialized() {
+		if (GLEAP_TOKEN) {
+			logger.info('Gleap SDK initialized');
+		}
+
 		let engine = 'JavaScriptCore';
 		if (usingHermes) {
 			engine = 'Hermes';
 		} else if (usingV8) {
 			engine = 'V8';
 		}
-		const deviceName = await getDeviceName();
-		logger.info(`${applicationName} v${version}-${buildNumber} is running on ${deviceName} using ${engine} engine`);
 
-		if (GLEAP_TOKEN) {
-			logger.info('Gleap SDK initialized');
-		}
+		getDeviceName().then(deviceName => {
+			logger.info(
+				`${applicationName} v${version}-${buildNumber} is running on ${deviceName} using ${engine} engine`,
+			);
+		});
 
-		await checkUpdate();
+		checkUpdate().catch();
 	}
 
 	function onColorSchemeChanged() {
@@ -60,6 +70,13 @@ const Application: () => ReactElement = () => {
 		}
 	}
 
+	function onAppStateChange(status: AppStateStatus) {
+		if (Platform.OS !== 'web') {
+			focusManager.setFocused(status === 'active');
+		}
+	}
+
+	useEffect(onInitialized, []);
 	useEffect(onColorSchemeChanged, [colorScheme]);
 
 	return (

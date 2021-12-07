@@ -1,8 +1,12 @@
 enum ScreenRoutes {
 	Dashboard = 'Dashboard',
-	AddGreenBeanStock = 'AddGreenBeanStock',
-	RoastGreenBean = 'RoastGreenBean',
-	RoastingProcess = 'RoastingProcess',
+	Account = 'Account',
+
+	// Roaster Only
+	Stock = 'Stock',
+	Roast = 'Roast',
+	Roasting = 'Roasting',
+	Packaging = 'Packaging',
 }
 
 export default ScreenRoutes;

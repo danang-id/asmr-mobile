@@ -1,7 +1,7 @@
 import {createNativeStackNavigator, NativeStackNavigationOptions} from '@react-navigation/native-stack';
 import React, {FC} from 'react';
-import AuthenticationRoutes from './AuthenticationRoutes';
-import SignInScreen from './SignInScreen';
+import AuthenticationRoutes from 'asmr/screens/Authentication/AuthenticationRoutes';
+import SignInScreen from 'asmr/screens/Authentication/SignInScreen';
 
 const Stack = createNativeStackNavigator();
 const screenOptions: NativeStackNavigationOptions = {

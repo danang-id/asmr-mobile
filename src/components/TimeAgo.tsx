@@ -13,10 +13,12 @@ const Time: FC<TimeProps> = props => {
 };
 
 export interface TimeAgoProps {
-	date: Date | number;
+	date: Date | number | string;
 	locale?: string;
 }
 
-const TimeAgo: FC<TimeAgoProps> = props => <ReactTimeAgo {...props} component={Time} />;
+const TimeAgo: FC<TimeAgoProps> = ({date, ...props}) => (
+	<ReactTimeAgo date={new Date(date)} {...props} component={Time} />
+);
 
 export default TimeAgo;

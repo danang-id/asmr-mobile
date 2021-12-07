@@ -28,7 +28,7 @@ const SignInScreenStyle = StyleSheet.create({
 		paddingVertical: 10,
 	},
 
-	appTitleImage: {
+	applicationLogoImage: {
 		height: 75,
 		width: 217.5,
 	},

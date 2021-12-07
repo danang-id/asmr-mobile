@@ -1,10 +1,13 @@
 import {API_BASE_URL} from '@env';
 import axios, {AxiosError, AxiosInstance, AxiosRequestConfig, AxiosResponse, CancelTokenSource} from 'axios';
 import {Platform} from 'react-native';
-import {getVersion} from 'react-native-device-info';
+import {getApplicationName, getVersion} from 'react-native-device-info';
 import EncryptedStorage from 'react-native-encrypted-storage';
 import {SetProgressInfo} from 'asmr/context/ProgressContextInfo';
+import ErrorInformation from 'asmr/core/common/ErrorInformation';
+import ResponseModelBase from 'asmr/core/common/ResponseModelBase';
 import ClientPlatform from 'asmr/core/enums/ClientPlatform';
+import ErrorCode from 'asmr/core/enums/ErrorCode';
 import Logger from 'asmr/libs/common/Logger';
 
 export interface ServiceLogOptions {
@@ -15,7 +18,52 @@ export interface ServiceLogOptions {
 }
 
 export interface ServiceOptions {
-	log: ServiceLogOptions;
+	log?: ServiceLogOptions;
+	requesterTag?: string;
+}
+
+export interface ServiceParameters {
+	cancelTokenSource: CancelTokenSource;
+	setProgress: SetProgressInfo;
+	options?: ServiceOptions;
+}
+
+export class ServiceError<TData extends ResponseModelBase = never> extends Error {
+	public readonly response: TData | undefined;
+
+	constructor(message?: string, response?: TData) {
+		super(message);
+		this.response = response;
+	}
+
+	public hasError(code: ErrorCode): boolean {
+		return (this.response?.errors?.findIndex(error => error.code === code) ?? -1) !== -1;
+	}
+
+	public hasErrors(...codes: ErrorCode[]): boolean {
+		for (const code of codes) {
+			if (this.hasError(code)) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	public findErrors(...codes: ErrorCode[]): ErrorInformation[] {
+		const errors: ErrorInformation[] = [];
+		for (const error of this.response?.errors ?? []) {
+			if (codes.findIndex(code => code === error.code) !== -1) {
+				errors.push(error);
+			}
+		}
+
+		return errors;
+	}
+
+	public findFirstError(code: ErrorCode): ErrorInformation | undefined {
+		return this.response?.errors?.find(e => e.code === code);
+	}
 }
 
 class ServiceBase {
@@ -29,7 +77,7 @@ class ServiceBase {
 	protected setProgress: SetProgressInfo;
 	protected tag: string = ServiceBase.name;
 
-	constructor(cancelTokenSource: CancelTokenSource, setProgress: SetProgressInfo, options?: ServiceOptions) {
+	constructor({cancelTokenSource, setProgress, options}: ServiceParameters) {
 		this.options = options ?? {
 			log: {
 				requestHeader: false,
@@ -37,6 +85,7 @@ class ServiceBase {
 				responseHeader: false,
 				responseBody: false,
 			},
+			requesterTag: getApplicationName(),
 		};
 		this.setProgress = setProgress;
 		this.client = axios.create({
@@ -60,29 +109,41 @@ class ServiceBase {
 		this.client.interceptors.response.use(this.onResponseFulfilled.bind(this), this.onResponseRejected.bind(this));
 	}
 
-	protected logRequestResponse(request: AxiosRequestConfig, response: AxiosResponse) {
+	protected logRequestResponse<TData extends ResponseModelBase = never>(
+		request: AxiosRequestConfig,
+		response: AxiosResponse<TData>,
+	) {
 		const status = response.status.toString(10);
 		const method = request.method?.toUpperCase();
 		const url = request.url?.endsWith('/') ? request.url.substring(0, request.url.length - 1) : request.url;
-		const urlSearchParams = new URLSearchParams(request.params).toString();
-		const params = urlSearchParams !== '' ? `?${urlSearchParams}` : '';
-		Logger.info(this.tag, `[${status}] ${method} ${url}${params}`);
+		const urlSearchParams = new URLSearchParams(request.params);
+		urlSearchParams.delete('clientPlatform');
+		urlSearchParams.delete('clientVersion');
+		const params = urlSearchParams.toString() !== '' ? `?${urlSearchParams.toString()}` : '';
+		const requestedFrom = this.options?.requesterTag ? `${this.options.requesterTag} → ` : '';
+		let message = `[${status}] ${method} ${url}${params}`;
+		if (!response?.data?.isSuccess && response?.data?.errors) {
+			for (const error of response.data.errors ?? []) {
+				message += `\n\t• [${error.code} ${ErrorCode[error.code]}] ${error.reason}`;
+			}
+		}
+		Logger.info(`${requestedFrom}${this.tag}`, message);
 
-		if (this.options.log.requestHeader === true) {
+		if (this.options?.log?.requestHeader === true) {
 			Logger.info(this.tag, request.headers);
 		}
-		if (this.options.log.requestBody === true && request.data) {
+		if (this.options?.log?.requestBody === true && request.data) {
 			Logger.info(this.tag, `Request: ${request.data}`);
 		}
-		if (this.options.log.responseHeader === true) {
+		if (this.options?.log?.responseHeader === true) {
 			Logger.info(this.tag, response.headers);
 		}
-		if (this.options.log.responseBody === true && response.data) {
+		if (this.options?.log?.responseBody === true && response.data) {
 			Logger.info(this.tag, `Response: ${JSON.stringify(response.data)}`);
 		}
 	}
 
-	protected logError(error: AxiosError) {
+	protected logError<TData extends ResponseModelBase = never>(error: AxiosError<TData>) {
 		Logger.error(this.tag, error);
 	}
 
@@ -101,12 +162,12 @@ class ServiceBase {
 		return request;
 	}
 
-	protected onRequestRejected(error: AxiosError) {
-		this.logError(error);
-		return Promise.reject(error);
+	protected onRequestRejected<TData extends ResponseModelBase = never>(error: AxiosError<TData>) {
+		this.logError<TData>(error);
+		return Promise.reject(new ServiceError(error.message));
 	}
 
-	protected async onResponseFulfilled(response: AxiosResponse) {
+	protected async onResponseFulfilled<TData extends ResponseModelBase = never>(response: AxiosResponse<TData>) {
 		const setCookieHeaders = response.headers['set-cookie'];
 		if (setCookieHeaders) {
 			let setCookieHeaderString = '';
@@ -114,8 +175,6 @@ class ServiceBase {
 				for (const setCookieHeader of setCookieHeaders) {
 					setCookieHeaderString += setCookieHeader;
 				}
-			} else if (typeof setCookieHeaders === 'string') {
-				setCookieHeaderString = setCookieHeaders;
 			}
 			await EncryptedStorage.setItem(ServiceBase.SERVICE_COOKIES_STORAGE_KEY, setCookieHeaderString);
 
@@ -130,23 +189,32 @@ class ServiceBase {
 			}
 		}
 
-		this.logRequestResponse(response.config, response);
+		this.logRequestResponse<TData>(response.config, response);
 		this.setProgress(true, 0.75);
 		return response;
 	}
 
-	protected onResponseRejected(error: AxiosError) {
-		this.logError(error);
-		return Promise.reject(error);
+	protected onResponseRejected<TData extends ResponseModelBase = never>(error: AxiosError<TData>) {
+		this.logError<TData>(error);
+		this.setProgress(true, 0.75);
+		return Promise.reject(new ServiceError(error.message, error.response?.data));
 	}
 
 	protected prepare() {
 		this.setProgress(true, 0);
 	}
 
-	protected processData<T>(response: AxiosResponse<T>): T {
+	protected extract<TData extends ResponseModelBase = never>({data: result}: AxiosResponse<TData>): TData {
 		this.setProgress(true, 1);
-		return response.data;
+		if (!result.isSuccess) {
+			if (result.errors && Array.isArray(result.errors)) {
+				result.errors = result.errors.reverse();
+			}
+
+			throw new ServiceError(result.message, result);
+		}
+
+		return result;
 	}
 
 	protected finalize() {

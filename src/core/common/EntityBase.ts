@@ -1,7 +1,7 @@
 interface EntityBase {
 	id: string;
-	createdAt: Date;
-	lastUpdatedAt: Date;
+	createdAt: string;
+	lastUpdatedAt: string;
 }
 
 export default EntityBase;

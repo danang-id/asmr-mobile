@@ -2,6 +2,7 @@
  * @format
  */
 
+import 'react-native-url-polyfill/auto';
 import {GLEAP_TOKEN} from '@env';
 import TimeAgo from 'javascript-time-ago';
 import en from 'javascript-time-ago/locale/en.json';
@@ -11,10 +12,6 @@ import {getApplicationName} from 'react-native-device-info';
 import {FileLogger as FileLogging} from 'react-native-file-logger';
 import Gleap from 'react-native-gleapsdk';
 import Application from 'asmr/Application';
-
-if (!GLEAP_TOKEN) {
-	throw new Error('Please specify "GLEAP_TOKEN" environment variable.');
-}
 
 TimeAgo.addDefaultLocale(en);
 TimeAgo.addLocale(id);

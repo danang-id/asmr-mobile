@@ -1,59 +1,57 @@
 import {createBottomTabNavigator, BottomTabNavigationOptions} from '@react-navigation/bottom-tabs';
 import {ParamListBase, RouteProp} from '@react-navigation/native';
 import {Icon} from '@ui-kitten/components';
-import React, {FC, useEffect, useState} from 'react';
+import React, {FC} from 'react';
 import Role from 'asmr/core/enums/Role';
-import useAuthentication from 'asmr/hooks/AuthenticationHook';
-import CreateScreen from './CreateScreen';
-import DashboardRoutes from './DashboardRoutes';
-import MainScreen from './MainScreen';
-import ProfileScreen from './ProfileScreen';
+import useAuthentication from 'asmr/hooks/authentication.hook';
+import BeanListNavigator from 'asmr/screens/Dashboard/BeanList';
+import CreateScreen from 'asmr/screens/Dashboard/CreateScreen';
+import DashboardRoutes from 'asmr/screens/Dashboard/DashboardRoutes';
+import HomeScreen from 'asmr/screens/Dashboard/HomeScreen';
+import applicationColors from 'asmr/styles/colors';
 
 export interface DashboardParamList extends ParamListBase {
-	[DashboardRoutes.Main]: undefined;
+	[DashboardRoutes.Home]: undefined;
 	[DashboardRoutes.Create]: undefined;
-	[DashboardRoutes.Profile]: undefined;
+	[DashboardRoutes.BeanList]: undefined;
 }
 const Tab = createBottomTabNavigator<DashboardParamList>();
 
 const DashboardNavigator: FC = () => {
-	const {user, isAuthorized} = useAuthentication();
-	const [isRoaster, setIsRoaster] = useState(false);
+	const {isAuthorized} = useAuthentication();
 
-	function getScreenOptions({route}: {route: RouteProp<DashboardParamList>}): BottomTabNavigationOptions {
+	type GetScreenOptionsProps = {route: RouteProp<DashboardParamList>; navigation: unknown};
+	function getScreenOptions({route}: GetScreenOptionsProps): BottomTabNavigationOptions {
 		return {
 			headerShown: false,
 			tabBarIcon: ({focused, color: tintColor, size: height}) => {
-				if (route.name === DashboardRoutes.Create) {
-					// TODO: Create custom tab bar button for Create actions
-					height += 20;
-					return <Icon name="add-circle" pack="ion" style={{height, tintColor}} />;
-				}
-
 				let iconName;
-				if (route.name === DashboardRoutes.Main) {
-					iconName = focused ? 'file-tray-full' : 'file-tray-outline';
-				} else if (route.name === DashboardRoutes.Profile) {
-					iconName = 'person-circle-outline';
+				let iconPack;
+				if (route.name === DashboardRoutes.Home) {
+					iconName = 'home';
+					iconPack = 'material';
+				} else if (route.name === DashboardRoutes.Create) {
+					height += 20;
+					iconName = focused ? 'add-circle' : 'add-circle-outline';
+					iconPack = 'ion';
+				} else if (route.name === DashboardRoutes.BeanList) {
+					iconName = focused ? 'list' : 'list-outline';
+					iconPack = 'ion';
 				}
 
-				return <Icon name={iconName} pack="ion" style={{height, tintColor}} />;
+				tintColor = focused ? applicationColors.bean : applicationColors.darker;
+
+				return <Icon name={iconName} pack={iconPack} style={{height, tintColor}} />;
 			},
 			tabBarShowLabel: false,
 		};
 	}
 
-	function onUserDataChanged() {
-		setIsRoaster(isAuthorized([Role.Roaster]));
-	}
-
-	useEffect(onUserDataChanged, [user]);
-
 	return (
-		<Tab.Navigator initialRouteName={DashboardRoutes.Main} screenOptions={getScreenOptions}>
-			<Tab.Screen name={DashboardRoutes.Main} component={MainScreen} />
-			{isRoaster && <Tab.Screen name={DashboardRoutes.Create} component={CreateScreen} />}
-			<Tab.Screen name={DashboardRoutes.Profile} component={ProfileScreen} />
+		<Tab.Navigator initialRouteName={DashboardRoutes.Home} screenOptions={getScreenOptions}>
+			<Tab.Screen name={DashboardRoutes.Home} component={HomeScreen} />
+			{isAuthorized([Role.Roaster]) && <Tab.Screen name={DashboardRoutes.Create} component={CreateScreen} />}
+			<Tab.Screen name={DashboardRoutes.BeanList} component={BeanListNavigator} />
 		</Tab.Navigator>
 	);
 };

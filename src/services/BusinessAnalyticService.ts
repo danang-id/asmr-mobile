@@ -1,31 +1,40 @@
-import {CancelTokenSource} from 'axios';
-import {SetProgressInfo} from 'asmr/context/ProgressContextInfo';
+import {AxiosResponse} from 'axios';
 import BusinessAnalyticsResponseModel from 'asmr/core/response/BusinessAnalyticsResponseModel';
-import ServiceBase, {ServiceOptions} from 'asmr/services/ServiceBase';
+import StructuredBusinessAnalyticsResponseModel from 'asmr/core/response/StructuredBusinessAnalyticsResponseModel';
+import {createStructuredBusinessAnalytics} from 'asmr/libs/common/BusinessAnalytics.helper';
+import ServiceBase, {ServiceParameters} from 'asmr/services/ServiceBase';
 
 class BusinessAnalyticService extends ServiceBase {
-	private servicePath = '/api/BusinessAnalytic/';
+	private servicePath = '/api/businessanalytic/';
 
-	constructor(cancelTokenSource: CancelTokenSource, setProgress: SetProgressInfo, options?: ServiceOptions) {
-		super(cancelTokenSource, setProgress, options);
+	constructor(parameters: ServiceParameters) {
+		super(parameters);
 		super.tag = BusinessAnalyticService.name;
 	}
 
-	public async getMine(): Promise<BusinessAnalyticsResponseModel> {
+	public async getMine(): Promise<StructuredBusinessAnalyticsResponseModel> {
 		try {
 			this.prepare();
-			const response = await this.client.get(this.servicePath);
-			return this.processData(response);
+			const response = await this.client.get<BusinessAnalyticsResponseModel>(this.servicePath);
+			const {data, ...result} = this.extract(response);
+			return {
+				...result,
+				data: createStructuredBusinessAnalytics(data ?? []),
+			};
 		} finally {
 			this.finalize();
 		}
 	}
 
-	public async getByBeanId(beanId: string): Promise<BusinessAnalyticsResponseModel> {
+	public async getByBeanId(beanId: string): Promise<StructuredBusinessAnalyticsResponseModel> {
 		try {
 			this.prepare();
-			const response = await this.client.get(this.servicePath + 'bean/' + beanId);
-			return this.processData(response);
+			const response = await this.client.get<BusinessAnalyticsResponseModel>(this.servicePath + 'bean/' + beanId);
+			const {data, ...result} = this.extract(response);
+			return {
+				...result,
+				data: createStructuredBusinessAnalytics(data ?? []),
+			};
 		} finally {
 			this.finalize();
 		}

@@ -1,24 +1,30 @@
-import React, {FC, useState} from 'react';
+import React, {FC} from 'react';
 import InventoryContext from 'asmr/context/InventoryContext';
 import Bean from 'asmr/core/entities/Bean';
 import IncomingGreenBean from 'asmr/core/entities/IncomingGreenBean';
+import StructuredBusinessAnalytics from 'asmr/core/entities/StructuredBusinessAnalytics';
 import ErrorCode from 'asmr/core/enums/ErrorCode';
-import {useInitAsync} from 'asmr/hooks/InitHook';
-import useLogger from 'asmr/hooks/LoggerHook';
-import useServices from 'asmr/hooks/ServiceHook';
-import {parseEntity, createEntitiesSorter} from 'asmr/libs/common/EntityHelper';
+import useLogger from 'asmr/hooks/logger.hook';
+import usePersistedState from 'asmr/hooks/persisted-state.hook';
+import useServices from 'asmr/hooks/service.hook';
+import {createStructuredBusinessAnalytics} from 'asmr/libs/common/BusinessAnalytics.helper';
+import {createEntitiesSorter} from 'asmr/libs/common/Entity.helper';
 
 const InventoryProvider: FC = ({children}) => {
-	useInitAsync(onInitAsync);
 	const logger = useLogger(InventoryProvider);
-	const {handleError, handleErrors, bean: beanService, incomingGreenBean: incomingGreenBeanService} = useServices();
+	const {
+		handleError,
+		handleErrors,
+		bean: beanService,
+		businessAnalytic: businessAnalyticService,
+		incomingGreenBean: incomingGreenBeanService,
+	} = useServices(InventoryProvider);
 
-	const [beanList, setBeanList] = useState<Bean[]>([]);
-	const [incomingGreenBeanList, setIncomingGreenBeanList] = useState<IncomingGreenBean[]>([]);
-
-	function onInitAsync(): Promise<void> {
-		return refresh();
-	}
+	const [beanList, setBeanList] = usePersistedState<Bean[]>('BEANS', []);
+	const [incomingGreenBeanList, setIncomingGreenBeanList] = usePersistedState<IncomingGreenBean[]>(
+		'INCOMING_GREEN_BEANS',
+		[],
+	);
 
 	function getBeanById(id: string): Bean | undefined {
 		return (beanList || []).find((bean: Bean) => bean.id === id);
@@ -29,15 +35,18 @@ const InventoryProvider: FC = ({children}) => {
 	}
 
 	async function refresh(): Promise<void> {
+		logger.info('Data refresh requested');
 		await Promise.all([getBeans(), getMyStocks()]);
 	}
 
 	async function createStock(beanId: string, weight: number): Promise<Bean | undefined> {
+		logger.info('Create stock requested');
+
 		try {
 			const result = await incomingGreenBeanService.create(beanId, {weight});
 			if (result.isSuccess && result.data) {
 				await refresh();
-				return parseEntity(result.data);
+				return result.data;
 			}
 
 			if (result.errors) {
@@ -49,10 +58,12 @@ const InventoryProvider: FC = ({children}) => {
 	}
 
 	async function getBeans(): Promise<void> {
+		logger.info('Get beans requested');
+
 		try {
 			const result = await beanService.getAll();
 			if (result.isSuccess && result.data) {
-				setBeanList(result.data.map(parseEntity));
+				setBeanList(result.data);
 			}
 
 			if (result.errors && Array.isArray(result.errors)) {
@@ -66,11 +77,35 @@ const InventoryProvider: FC = ({children}) => {
 		}
 	}
 
+	async function getBusinessAnalytics(beanId: string): Promise<StructuredBusinessAnalytics> {
+		logger.info('Get business analytics requested');
+
+		try {
+			const result = await businessAnalyticService.getByBeanId(beanId);
+			if (result.isSuccess && result.data) {
+				return result.data;
+			}
+
+			if (result.errors && Array.isArray(result.errors)) {
+				const unauthenticatedError = result.errors.find(error => error.code === ErrorCode.NotAuthenticated);
+				if (!unauthenticatedError) {
+					handleErrors(result.errors, logger);
+				}
+			}
+		} catch (error) {
+			handleError(error as Error, logger);
+		}
+
+		return createStructuredBusinessAnalytics([]);
+	}
+
 	async function getMyStocks(): Promise<void> {
+		logger.info('Get my stocks requested');
+
 		try {
 			const result = await incomingGreenBeanService.getAll(true);
 			if (result.isSuccess && result.data) {
-				setIncomingGreenBeanList(result.data.map(parseEntity).sort(createEntitiesSorter()));
+				setIncomingGreenBeanList(result.data.sort(createEntitiesSorter()));
 			}
 
 			if (result.errors && Array.isArray(result.errors)) {
@@ -85,7 +120,15 @@ const InventoryProvider: FC = ({children}) => {
 	}
 
 	return (
-		<InventoryContext.Provider value={{beans: beanList, list: incomingGreenBeanList, getBeanById, stock, refresh}}>
+		<InventoryContext.Provider
+			value={{
+				beans: beanList ?? [],
+				list: incomingGreenBeanList ?? [],
+				getBeanById,
+				getBusinessAnalytics,
+				stock,
+				refresh,
+			}}>
 			{children}
 		</InventoryContext.Provider>
 	);

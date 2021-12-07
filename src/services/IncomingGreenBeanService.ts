@@ -1,15 +1,13 @@
-import {CancelTokenSource} from 'axios';
-import {SetProgressInfo} from 'asmr/context/ProgressContextInfo';
 import CreateIncomingGreenBeanRequestModel from 'asmr/core/request/CreateIncomingGreenBeanRequestModel';
 import BeanResponseModel from 'asmr/core/response/BeanResponseModel';
 import IncomingGreenBeansResponseModel from 'asmr/core/response/IncomingGreenBeansResponseModel';
-import ServiceBase, {ServiceOptions} from 'asmr/services/ServiceBase';
+import ServiceBase, {ServiceParameters} from 'asmr/services/ServiceBase';
 
 class IncomingGreenBeanService extends ServiceBase {
-	private servicePath = '/api/IncomingGreenBean/';
+	private servicePath = '/api/incominggreenbean/';
 
-	constructor(cancelTokenSource: CancelTokenSource, setProgress: SetProgressInfo, options?: ServiceOptions) {
-		super(cancelTokenSource, setProgress, options);
+	constructor(parameters: ServiceParameters) {
+		super(parameters);
 		super.tag = IncomingGreenBeanService.name;
 	}
 
@@ -19,7 +17,7 @@ class IncomingGreenBeanService extends ServiceBase {
 			const response = await this.client.get(this.servicePath, {
 				params: {showMine},
 			});
-			return this.processData(response);
+			return this.extract(response);
 		} finally {
 			this.finalize();
 		}
@@ -29,7 +27,7 @@ class IncomingGreenBeanService extends ServiceBase {
 		try {
 			this.prepare();
 			const response = await this.client.post(this.servicePath + id, body);
-			return this.processData(response);
+			return this.extract(response);
 		} finally {
 			this.finalize();
 		}

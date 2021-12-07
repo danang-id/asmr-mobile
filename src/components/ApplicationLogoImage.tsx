@@ -1,5 +1,5 @@
 import ApplicationLogo from 'asmr-assets/ApplicationLogo.png';
-import React, {FC} from 'react';
+import React, {FC, memo} from 'react';
 import {StyleSheet, useColorScheme} from 'react-native';
 import FastImage, {ImageStyle} from 'react-native-fast-image';
 
@@ -20,4 +20,4 @@ const ApplicationLogoImage: FC<ApplicationLogoImageProps> = ({style, ...props}) 
 	);
 };
 
-export default ApplicationLogoImage;
+export default memo(ApplicationLogoImage);

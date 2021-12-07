@@ -10,11 +10,12 @@ import GateService from 'asmr/services/GateService';
 import IncomingGreenBeanService from 'asmr/services/IncomingGreenBeanService';
 import ProductionService from 'asmr/services/ProductionService';
 import ReleaseService from 'asmr/services/ReleaseService';
+import {ServiceParameters} from 'asmr/services/ServiceBase';
 
 export type Services = {
-	abort: () => void;
-	handleError: (error?: Error, logger?: ILogger, options?: ServiceErrorHandlerOptions) => void;
-	handleErrors: (errors?: ErrorInformation[], logger?: ILogger, options?: ServiceErrorsHandlerOptions) => void;
+	abort: (message?: string) => void;
+	handleError: typeof handleError;
+	handleErrors: typeof handleErrors;
 	bean: BeanService;
 	businessAnalytic: BusinessAnalyticService;
 	gate: GateService;
@@ -35,26 +36,66 @@ export type ServiceErrorsHandlerOptions = {
 	showLog: boolean;
 };
 
-function createServices(setProgress: SetProgressInfo): Services {
+declare function handleError(error?: Error, logger?: ILogger, options?: ServiceErrorHandlerOptions): void;
+declare function handleError(
+	operation: string,
+	error?: Error,
+	logger?: ILogger,
+	options?: ServiceErrorHandlerOptions,
+): void;
+
+declare function handleErrors(
+	errors?: ErrorInformation[],
+	logger?: ILogger,
+	options?: ServiceErrorsHandlerOptions,
+): void;
+declare function handleErrors(
+	operation: string,
+	errors?: ErrorInformation[],
+	logger?: ILogger,
+	options?: ServiceErrorsHandlerOptions,
+): void;
+
+function createServices(setProgress: SetProgressInfo, requesterTag: string): Services {
 	const cancelTokenSource = axios.CancelToken.source();
+	const parameters: ServiceParameters = {cancelTokenSource, setProgress, options: {requesterTag}};
 
 	function abort(message?: string) {
 		setProgress(false, 0);
 		cancelTokenSource.cancel(message);
 	}
 
+	function handleError(error?: Error, logger?: ILogger, options?: ServiceErrorHandlerOptions): void;
 	function handleError(
+		operation: string,
 		error?: Error,
 		logger?: ILogger,
-		options: ServiceErrorHandlerOptions = {showAlert: true, showLog: true},
+		options?: ServiceErrorHandlerOptions,
+	): void;
+	function handleError(
+		errorOrOperation?: Error | string,
+		loggerOrError?: ILogger | Error,
+		optionsOrLogger?: ServiceErrorHandlerOptions | ILogger,
+		options?: ServiceErrorHandlerOptions,
 	) {
-		function show(message: string) {
+		const operationAsFirstArg = typeof errorOrOperation === 'string';
+		const operation = operationAsFirstArg ? errorOrOperation : 'Operation';
+		const error = operationAsFirstArg ? (loggerOrError as Error) : (errorOrOperation as Error);
+		const logger = operationAsFirstArg ? (optionsOrLogger as ILogger) : (loggerOrError as ILogger);
+		if (!options) {
+			const defaultOptions: ServiceErrorHandlerOptions = {showAlert: true, showLog: false};
+			options = operationAsFirstArg
+				? defaultOptions
+				: (optionsOrLogger as ServiceErrorHandlerOptions) ?? defaultOptions;
+		}
+
+		function show(message: string, options: ServiceErrorHandlerOptions) {
 			if (logger && options.showLog) {
-				logger.error('Caught error, message:', message);
+				logger.error(`${operation} Request Service Error:`, message);
 			}
 
 			if (options.showAlert) {
-				Alert.alert('An Error Occurred', message);
+				Alert.alert(`${operation} Failed`, message);
 			}
 		}
 
@@ -68,18 +109,35 @@ function createServices(setProgress: SetProgressInfo): Services {
 			errorMessage = options.intercept(error);
 		}
 
-		if (error.message === 'Failed to fetch') {
-			errorMessage = 'We are unable to communicate with our back at the moment. Please try again later.';
-		}
-
-		show(errorMessage);
+		show(errorMessage, options);
 	}
 
+	function handleErrors(errors?: ErrorInformation[], logger?: ILogger, options?: ServiceErrorsHandlerOptions): void;
 	function handleErrors(
+		operation: string,
 		errors?: ErrorInformation[],
 		logger?: ILogger,
-		options: ServiceErrorsHandlerOptions = {showAlert: true, showLog: false},
+		options?: ServiceErrorsHandlerOptions,
+	): void;
+	function handleErrors(
+		errorOrOperation?: string | ErrorInformation[],
+		loggerOrError?: ErrorInformation[] | ILogger,
+		optionsOrLogger?: ILogger | ServiceErrorsHandlerOptions,
+		options?: ServiceErrorsHandlerOptions,
 	) {
+		const operationAsFirstArg = typeof errorOrOperation === 'string';
+		const operation = operationAsFirstArg ? errorOrOperation : 'Operation';
+		const errors = operationAsFirstArg
+			? (loggerOrError as ErrorInformation[])
+			: (errorOrOperation as ErrorInformation[]);
+		const logger = operationAsFirstArg ? (optionsOrLogger as ILogger) : (loggerOrError as ILogger);
+		if (!options) {
+			const defaultOptions: ServiceErrorsHandlerOptions = {showAlert: true, showLog: false};
+			options = operationAsFirstArg
+				? defaultOptions
+				: (optionsOrLogger as ServiceErrorsHandlerOptions) ?? defaultOptions;
+		}
+
 		if (!errors || !Array.isArray(errors)) {
 			return;
 		}
@@ -91,13 +149,13 @@ function createServices(setProgress: SetProgressInfo): Services {
 
 		if (logger && options.showLog) {
 			for (const error of errors.reverse()) {
-				logger.error('Request returns error, reason:', error.reason);
+				logger.error(`${operation} Request Failed:`, error.reason);
 			}
 		}
 
 		if (options.showAlert) {
 			const firstError = errors[0];
-			Alert.alert('Error Occurred', firstError.reason);
+			Alert.alert(`${operation} Failed`, firstError.reason);
 		}
 	}
 
@@ -105,12 +163,12 @@ function createServices(setProgress: SetProgressInfo): Services {
 		abort,
 		handleError,
 		handleErrors,
-		bean: new BeanService(cancelTokenSource, setProgress),
-		businessAnalytic: new BusinessAnalyticService(cancelTokenSource, setProgress),
-		gate: new GateService(cancelTokenSource, setProgress),
-		incomingGreenBean: new IncomingGreenBeanService(cancelTokenSource, setProgress),
-		production: new ProductionService(cancelTokenSource, setProgress),
-		release: new ReleaseService(cancelTokenSource, setProgress),
+		bean: new BeanService(parameters),
+		businessAnalytic: new BusinessAnalyticService(parameters),
+		gate: new GateService(parameters),
+		incomingGreenBean: new IncomingGreenBeanService(parameters),
+		production: new ProductionService(parameters),
+		release: new ReleaseService(parameters),
 	};
 }
 

@@ -12,7 +12,7 @@ interface ProductionContextInfo {
 	hasOngoingProduction(): boolean;
 	start(beanId: string, greenBeanWeight: number): Promise<Roasting | undefined>;
 	finish(roastedBeanWeight: number): Promise<Roasting | undefined>;
-	cancel(): Promise<Roasting | undefined>;
+	cancel(isBeanBurnt?: boolean): Promise<Roasting | undefined>;
 	refresh(): Promise<void>;
 }
 

@@ -1,51 +1,55 @@
+import {ParamListBase} from '@react-navigation/native';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
-import React, {FC, Fragment, useEffect, useState} from 'react';
+import React, {FC, Fragment, useEffect, useRef} from 'react';
 import SplashScreen from 'react-native-splash-screen';
 import Role from 'asmr/core/enums/Role';
-import useAuthentication from 'asmr/hooks/AuthenticationHook';
-import {useInitAsync} from 'asmr/hooks/InitHook';
-import AddGreenBeanStockNavigator from 'asmr/screens/AddGreenBeanStock/AddGreenBeanStockNavigator';
-import AuthenticationNavigator from 'asmr/screens/Authentication/AuthenticationNavigator';
-import DashboardNavigator from 'asmr/screens/Dashboard/DashboardNavigator';
-import RoastGreenBeanNavigator from 'asmr/screens/RoastGreenBean/RoastGreenBeanNavigator';
-import RoastingProcessNavigator from 'asmr/screens/RoastingProcess/RoastingProcessNavigator';
+import useAuthentication from 'asmr/hooks/authentication.hook';
+import AccountNavigator from 'asmr/screens/Account';
+import AuthenticationNavigator from 'asmr/screens/Authentication';
+import DashboardNavigator from 'asmr/screens/Dashboard';
+import PackagingNavigator from 'asmr/screens/Packaging';
+import RoastNavigator from 'asmr/screens/Roast';
+import RoastingNavigator from 'asmr/screens/Roasting';
 import ScreenRoutes from 'asmr/screens/ScreenRoutes';
+import StockNavigator from 'asmr/screens/Stock';
 
-const Stack = createNativeStackNavigator();
+export interface RootParamList extends ParamListBase {
+	[ScreenRoutes.Dashboard]: undefined;
+	[ScreenRoutes.Account]: undefined;
+	[ScreenRoutes.Stock]: undefined;
+	[ScreenRoutes.Roast]: undefined;
+	[ScreenRoutes.Roasting]: undefined;
+	[ScreenRoutes.Packaging]: undefined;
+}
+const Stack = createNativeStackNavigator<RootParamList>();
 
 const ScreenNavigator: FC = () => {
-	useInitAsync(onInitAsync);
-	const {user, isAuthenticated, isAuthorized, refresh: refreshAuthentication} = useAuthentication();
+	const {isAuthenticated, isAuthorized, isUserLoading, user} = useAuthentication();
+	const initialized = useRef<boolean>(false);
 
-	const [isRoaster, setIsRoaster] = useState(false);
-
-	async function onInitAsync(): Promise<void> {
-		await refreshAuthentication();
-		SplashScreen.hide();
-	}
-
-	function onUserDataChanged() {
-		if (isAuthenticated()) {
-			setIsRoaster(isAuthorized([Role.Roaster]));
-		} else {
-			setIsRoaster(false);
+	function onUserValidatingChanged() {
+		if (!isUserLoading && !initialized.current) {
+			SplashScreen.hide();
+			initialized.current = true;
 		}
 	}
 
-	useEffect(onUserDataChanged, [user]);
+	useEffect(onUserValidatingChanged, [isUserLoading]);
 
-	if (!isAuthenticated()) {
+	if (!isAuthenticated || !user) {
 		return <AuthenticationNavigator />;
 	}
 
 	return (
 		<Stack.Navigator initialRouteName={ScreenRoutes.Dashboard} screenOptions={{headerShown: false}}>
 			<Stack.Screen name={ScreenRoutes.Dashboard} component={DashboardNavigator} />
-			{isRoaster && (
+			<Stack.Screen name={ScreenRoutes.Account} component={AccountNavigator} />
+			{isAuthorized([Role.Roaster]) && (
 				<Fragment>
-					<Stack.Screen name={ScreenRoutes.AddGreenBeanStock} component={AddGreenBeanStockNavigator} />
-					<Stack.Screen name={ScreenRoutes.RoastGreenBean} component={RoastGreenBeanNavigator} />
-					<Stack.Screen name={ScreenRoutes.RoastingProcess} component={RoastingProcessNavigator} />
+					<Stack.Screen name={ScreenRoutes.Stock} component={StockNavigator} />
+					<Stack.Screen name={ScreenRoutes.Roast} component={RoastNavigator} />
+					<Stack.Screen name={ScreenRoutes.Roasting} component={RoastingNavigator} />
+					<Stack.Screen name={ScreenRoutes.Packaging} component={PackagingNavigator} />
 				</Fragment>
 			)}
 		</Stack.Navigator>

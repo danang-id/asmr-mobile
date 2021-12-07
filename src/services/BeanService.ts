@@ -1,14 +1,12 @@
-import {CancelTokenSource} from 'axios';
-import {SetProgressInfo} from 'asmr/context/ProgressContextInfo';
 import BeanResponseModel from 'asmr/core/response/BeanResponseModel';
 import BeansResponseModel from 'asmr/core/response/BeansResponseModel';
-import ServiceBase, {ServiceOptions} from 'asmr/services/ServiceBase';
+import ServiceBase, {ServiceParameters} from 'asmr/services/ServiceBase';
 
 class BeanService extends ServiceBase {
-	private servicePath = '/api/Bean/';
+	private servicePath = '/api/bean/';
 
-	constructor(cancelTokenSource: CancelTokenSource, setProgress: SetProgressInfo, options?: ServiceOptions) {
-		super(cancelTokenSource, setProgress, options);
+	constructor(parameters: ServiceParameters) {
+		super(parameters);
 		super.tag = BeanService.name;
 	}
 
@@ -16,7 +14,7 @@ class BeanService extends ServiceBase {
 		try {
 			this.prepare();
 			const response = await this.client.get(this.servicePath);
-			return this.processData(response);
+			return this.extract(response);
 		} finally {
 			this.finalize();
 		}
@@ -26,7 +24,7 @@ class BeanService extends ServiceBase {
 		try {
 			this.prepare();
 			const response = await this.client.get(this.servicePath + id);
-			return this.processData(response);
+			return this.extract(response);
 		} finally {
 			this.finalize();
 		}

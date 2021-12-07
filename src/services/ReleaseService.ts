@@ -1,15 +1,13 @@
-import {CancelTokenSource} from 'axios';
-import {SetProgressInfo} from 'asmr/context/ProgressContextInfo';
 import ResponseModelBase from 'asmr/core/common/ResponseModelBase';
 import AndroidReleaseInformation from 'asmr/core/release/common/AndroidReleaseInformation';
 import iOSReleaseInformation from 'asmr/core/release/common/iOSReleaseInformation';
-import ServiceBase, {ServiceOptions} from 'asmr/services/ServiceBase';
+import ServiceBase, {ServiceParameters} from 'asmr/services/ServiceBase';
 
 class ReleaseService extends ServiceBase {
-	private servicePath = '/api/Release/';
+	private servicePath = '/api/release/';
 
-	constructor(cancelTokenSource: CancelTokenSource, setProgress: SetProgressInfo, options?: ServiceOptions) {
-		super(cancelTokenSource, setProgress, options);
+	constructor(parameters: ServiceParameters) {
+		super(parameters);
 		super.tag = ReleaseService.name;
 	}
 
@@ -19,7 +17,7 @@ class ReleaseService extends ServiceBase {
 		try {
 			this.prepare();
 			const response = await this.client.get(this.servicePath + 'mobile');
-			return this.processData(response);
+			return this.extract(response);
 		} finally {
 			this.finalize();
 		}

@@ -32,7 +32,7 @@
 		<dict/>
 	</dict>
 	<key>NSCameraUsageDescription</key>
-	<string>We used your camera to scan the bean's QR code.</string>
+	<string>We need the permission to use your camera to scan bean's QR code.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string></string>
 	<key>UIAppFonts</key>

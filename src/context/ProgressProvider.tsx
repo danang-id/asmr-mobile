@@ -1,7 +1,7 @@
 import React, {FC, useEffect, useState} from 'react';
 import ProgressContext from 'asmr/context/ProgressContext';
-import useLogger from 'asmr/hooks/LoggerHook';
-import usePrevious from 'asmr/hooks/PreviousHook';
+import useLogger from 'asmr/hooks/logger.hook';
+import usePrevious from 'asmr/hooks/previous.hook';
 
 const ProgressLogConfig = {
 	useLog: false,

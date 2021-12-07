@@ -1,82 +1,165 @@
-import {GLEAP_TOKEN} from '@env';
-import React, {FC, useEffect} from 'react';
-import Gleap from 'react-native-gleapsdk';
+import React, {FC} from 'react';
+import {useMutation, useQuery, useQueryClient} from 'react-query';
 import AuthenticationContext from 'asmr/context/AuthenticationContext';
+import StructuredBusinessAnalytics from 'asmr/core/entities/StructuredBusinessAnalytics';
 import User from 'asmr/core/entities/User';
 import ErrorCode from 'asmr/core/enums/ErrorCode';
+import Role from 'asmr/core/enums/Role';
+import SignInRequestModel from 'asmr/core/request/SignInRequestModel';
 import AuthenticationResponseModel from 'asmr/core/response/AuthenticationResponseModel';
-import {useInitAsync} from 'asmr/hooks/InitHook';
-import useLogger from 'asmr/hooks/LoggerHook';
-import usePersistedState from 'asmr/hooks/PersistedStateHook';
-import usePrevious from 'asmr/hooks/PreviousHook';
-import useServices from 'asmr/hooks/ServiceHook';
-import {parseEntity} from 'asmr/libs/common/EntityHelper';
+import StructuredBusinessAnalyticsResponseModel from 'asmr/core/response/StructuredBusinessAnalyticsResponseModel';
+import usePersistedState from 'asmr/hooks/persisted-state.hook';
+import useServices from 'asmr/hooks/service.hook';
+import {ServiceError} from 'asmr/services/ServiceBase';
 
+const AUTHENTICATED_USER_KEY = 'AUTHENTICATED_USER';
+const AUTHENTICATED_USER_BUSINESS_ANALYTICS_KEY = 'AUTHENTICATED_USER_BUSINESS_ANALYTICS';
 const AuthenticationProvider: FC = ({children}) => {
-	useInitAsync(onInitAsync);
-	const logger = useLogger(AuthenticationProvider);
-	const {abort, handleError, handleErrors, gate: gateService} = useServices();
-	const [user, setUser] = usePersistedState<User>('AUTHENTICATED_USER');
-	const previousUser = usePrevious<User | undefined>(user);
+	const services = useServices(AuthenticationProvider);
+	const [user, setUser] = usePersistedState<User>(AUTHENTICATED_USER_KEY);
+	const [businessAnalytics, setBusinessAnalytics] = usePersistedState<StructuredBusinessAnalytics>(
+		AUTHENTICATED_USER_BUSINESS_ANALYTICS_KEY,
+	);
 
-	function onInitAsync(): Promise<void> {
-		return refresh();
-	}
+	const queryClient = useQueryClient();
 
-	function onAuthenticationRefreshed(): void {
-		const logAuthChange = () => {
-			logger.info('Authentication Changed:', user ? `${user.username} (${user.emailAddress})` : 'null');
-		};
+	// <editor-fold desc="Business Analytics Query">
+	const onBusinessAnalyticsQuerySuccess = async (data: StructuredBusinessAnalytics | undefined) => {
+		setBusinessAnalytics(data);
+	};
 
-		if (!previousUser && !user) {
-			// Both undefined or null, not changed
+	const onBusinessAnalyticsQueryError = async (error: ServiceError<StructuredBusinessAnalyticsResponseModel>) => {
+		if (error.hasError(ErrorCode.NotAuthenticated)) {
+			setBusinessAnalytics(undefined);
 			return;
 		}
-		if ((!previousUser && !!user) || (!!previousUser && !user)) {
-			// Sign in or sign out activity
-			if (user) {
-				if (GLEAP_TOKEN) {
-					Gleap.logEvent('Authentication: Sign in', user);
-					Gleap.identify(user.id, {
-						name: user.firstName + ' ' + user.lastName,
-						email: user.emailAddress,
-					});
-				}
-			} else {
-				if (GLEAP_TOKEN) {
-					Gleap.logEvent('Authentication: Sign out', {});
-					Gleap.clearIdentity();
-				}
-			}
 
-			logAuthChange();
+		if (!error.response || !error.response.errors) {
+			services.handleError(error);
+		} else {
+			services.handleErrors(error.response.errors);
+		}
+	};
+
+	const businessAnalyticsQuery = useQuery(
+		AUTHENTICATED_USER_BUSINESS_ANALYTICS_KEY,
+		async () => {
+			const result = await services.businessAnalytic.getMine();
+			return result.data;
+		},
+		{
+			initialData: businessAnalytics,
+			onSuccess: onBusinessAnalyticsQuerySuccess,
+			onError: onBusinessAnalyticsQueryError,
+			retry: (failureCount, error) => !error.hasError(ErrorCode.NotAuthenticated),
+		},
+	);
+	// </editor-fold>
+
+	// <editor-fold desc="User Query">
+	const onUserQuerySuccess = async (data: User | undefined) => {
+		setUser(data);
+	};
+
+	const onUserQueryError = async (error: ServiceError<AuthenticationResponseModel>) => {
+		if (error.hasError(ErrorCode.NotAuthenticated)) {
+			setUser(undefined);
+			return;
 		}
 
-		// Algorithm below should not have happened because for user ID to have changed,
-		// ones need to sign out and then sign in. But it here to completes the missing
-		// logical structure.
-		if (!!previousUser && !!user) {
-			if (previousUser.id !== user.id) {
-				logAuthChange();
-			}
+		if (!error.response || !error.response.errors) {
+			services.handleError(error);
+		} else {
+			services.handleErrors(error.response.errors);
+		}
+	};
+
+	const userQuery = useQuery(
+		AUTHENTICATED_USER_KEY,
+		async () => {
+			const result = await services.gate.getUserPassport();
+			return result.data;
+		},
+		{
+			initialData: user,
+			onSuccess: onUserQuerySuccess,
+			onError: onUserQueryError,
+			retry: (failureCount, error) => !error.hasError(ErrorCode.NotAuthenticated),
+		},
+	);
+	// </editor-fold>
+
+	// <editor-fold desc="Sign In Mutation">
+	const onSignInSuccess = async (data: User | undefined) => {
+		setUser(data);
+		await queryClient.invalidateQueries(AUTHENTICATED_USER_BUSINESS_ANALYTICS_KEY);
+	};
+
+	const onSignInError = (error: ServiceError<AuthenticationResponseModel>) => {
+		if (error.hasError(ErrorCode.NotAuthenticated)) {
+			setUser(undefined);
+			return;
+		}
+
+		if (!error.response || !error.response.errors) {
+			services.handleError('Sign In', error);
+		} else {
+			services.handleErrors('Sign In', error.response.errors);
+		}
+	};
+
+	const signInRequest = async (model: SignInRequestModel) => {
+		const result = await services.gate.authenticate(model);
+		return result.data;
+	};
+	const signInQuery = useMutation(signInRequest, {
+		onSuccess: onSignInSuccess,
+		onError: onSignInError,
+	});
+
+	async function signIn(username: string, password: string) {
+		try {
+			await signInQuery.mutateAsync({username, password});
+		} catch (error) {
+			// Do nothing
 		}
 	}
+	// </editor-fold>
 
-	function parseUserData(data: User): User {
-		const clone = parseEntity(data);
-		const roles = [];
-		for (const role of clone.roles) {
-			roles.push(parseEntity(role));
+	// <editor-fold desc="Sign Out Mutation">
+	const onSignOutSuccess = async (data: User | undefined) => {
+		setUser(undefined);
+		await queryClient.invalidateQueries(AUTHENTICATED_USER_BUSINESS_ANALYTICS_KEY);
+	};
+
+	const onSignOutError = (error: ServiceError<AuthenticationResponseModel>) => {
+		if (!error.response || !error.response.errors) {
+			services.handleError('Sign Out', error);
+		} else {
+			services.handleErrors('Sign Out', error.response.errors);
 		}
-		clone.roles = roles;
-		return clone;
-	}
+	};
 
-	function isAuthenticated(): boolean {
-		return !!user;
-	}
+	const signOutRequest = async () => {
+		const result = await services.gate.clearSession();
+		return result.data;
+	};
+	const signOutQuery = useMutation(signOutRequest, {
+		onSuccess: onSignOutSuccess,
+		onError: onSignOutError,
+	});
 
-	function isAuthorized(roles: number[]): boolean {
+	async function signOut() {
+		try {
+			await signOutQuery.mutateAsync();
+		} catch (error) {
+			// Do nothing
+		}
+	}
+	// </editor-fold>
+
+	//<editor-fold desc="Authorization">
+	function isAuthorized(roles: Role[]) {
 		if (!user?.roles) {
 			return false;
 		}
@@ -93,54 +176,25 @@ const AuthenticationProvider: FC = ({children}) => {
 
 		return false;
 	}
+	//</editor-fold>
 
-	async function refresh(): Promise<void> {
-		try {
-			const result = await gateService.getUserPassport();
-			if (result.isSuccess && result.data) {
-				setUser(parseUserData(result.data));
-			}
-
-			if (result.errors && Array.isArray(result.errors)) {
-				const unauthenticatedError = result.errors.find(error => error.code === ErrorCode.NotAuthenticated);
-				if (!unauthenticatedError) {
-					handleErrors(result.errors, logger);
-				}
-			}
-		} catch (error) {
-			handleError(error as Error, logger);
-		}
+	//<editor-fold desc="Refresh">
+	async function refresh() {
+		await Promise.all([
+			queryClient.invalidateQueries(AUTHENTICATED_USER_KEY),
+			queryClient.invalidateQueries(AUTHENTICATED_USER_BUSINESS_ANALYTICS_KEY),
+		]);
 	}
-
-	async function signIn(username?: string, password?: string): Promise<AuthenticationResponseModel> {
-		const result = await gateService.authenticate({username, password, rememberMe: true});
-		if (result.isSuccess && result.data) {
-			setUser(parseUserData(result.data));
-			// await FileCaching.fetchToCache(response.data.image);
-		}
-
-		return result;
-	}
-
-	async function signOut(): Promise<AuthenticationResponseModel> {
-		const result = await gateService.clearSession();
-		if (result.isSuccess) {
-			// await FileCaching.removeCache(user.image);
-			setUser(undefined);
-		}
-		return result;
-	}
-
-	useEffect(onAuthenticationRefreshed, [user]);
+	//</editor-fold>
 
 	return (
 		<AuthenticationContext.Provider
 			value={{
+				businessAnalytics,
 				user,
-				abort,
-				handleError,
-				handleErrors,
-				isAuthenticated,
+				isAuthenticated: !!user,
+				isBusinessAnalyticsLoading: businessAnalyticsQuery.isLoading,
+				isUserLoading: userQuery.isLoading,
 				isAuthorized,
 				refresh,
 				signIn,

@@ -1,32 +1,36 @@
 import {API_BASE_URL} from '@env';
-import React, {FC} from 'react';
-import {StyleSheet} from 'react-native';
-import FastImage from 'react-native-fast-image';
-import useAuthentication from 'asmr/hooks/AuthenticationHook';
+import React, {FC, memo} from 'react';
+import {StyleSheet, TouchableOpacity, TouchableOpacityProps} from 'react-native';
+import FastImage, {ImageStyle, ResizeMode} from 'react-native-fast-image';
+import useAuthentication from 'asmr/hooks/authentication.hook';
 
-export interface ProfilePictureProps {
+export interface ProfilePictureProps extends TouchableOpacityProps {
 	size: number;
+	resizeMode?: ResizeMode;
+	rounded?: boolean;
 }
 
-const ProfilePicture: FC<ProfilePictureProps> = ({size}) => {
+const ProfilePicture: FC<ProfilePictureProps> = ({size, resizeMode, rounded, ...props}) => {
 	const {user} = useAuthentication();
 
 	const style = StyleSheet.flatten({
-		borderRadius: 100,
+		borderRadius: rounded ? 100 : 0,
 		height: size,
 		width: size,
 	});
 
 	return (
-		<FastImage
-			style={style}
-			resizeMode={FastImage.resizeMode.contain}
-			source={{
-				uri: API_BASE_URL + user?.image,
-				priority: FastImage.priority.high,
-			}}
-		/>
+		<TouchableOpacity {...props}>
+			<FastImage
+				style={style as ImageStyle}
+				resizeMode={resizeMode ?? FastImage.resizeMode.contain}
+				source={{
+					uri: API_BASE_URL + user?.image,
+					priority: FastImage.priority.high,
+				}}
+			/>
+		</TouchableOpacity>
 	);
 };
 
-export default ProfilePicture;
+export default memo(ProfilePicture);
