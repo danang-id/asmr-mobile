@@ -1,4 +1,4 @@
-package me.hamzahjundi.asmr;
+package id.danang.asmr;
 
 import android.os.Bundle;
 import com.facebook.react.ReactActivity;

@@ -467,7 +467,7 @@
 					"-ObjC",
 					"-lc++",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = me.hamzahjundi.asmr;
+				PRODUCT_BUNDLE_IDENTIFIER = id.danang.asmr;
 				PRODUCT_NAME = ASMRMobile;
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
@@ -497,7 +497,7 @@
 					"-ObjC",
 					"-lc++",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = me.hamzahjundi.asmr;
+				PRODUCT_BUNDLE_IDENTIFIER = id.danang.asmr;
 				PRODUCT_NAME = ASMRMobile;
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_VERSION = 5.0;

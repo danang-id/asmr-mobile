@@ -7,7 +7,7 @@
 <!-- PROJECT LOGO -->
 <br />
 <div align="center">
-  <a href="https://asmr.hamzahjundi.me/">
+  <a href="https://asmr.danang.id/">
     <img src="docs/asmr-title.jpg" alt="asmr" width="290" height="100">
   </a>
 
